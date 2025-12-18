@@ -1739,6 +1739,9 @@ elif st.session_state.user_role == "PLAYER":
                                     # Ne pas ajouter automatiquement aux joueurs prêts
                                     # Le joueur doit lire les résultats et cliquer sur PRÊT manuellement
 
+                                    # Sauvegarder les logs du combat pour affichage post-guerre
+                                    me["dernier_combat_logs"] = logs
+
                                     data["logs_guerre"].append(f"{me['nom']} a attaqué {cible['nom']}.")
                                     save_data(data)
                                     time.sleep(3)  # Temps pour lire le résultat
@@ -1865,17 +1868,33 @@ elif st.session_state.user_role == "PLAYER":
                         save_data(data)
                         st.rerun()
 
-                # CAS D : GUERRE ou GESTION (Actions coup de poing terminées)
-                elif act in ["GUERRE", "GESTION"]:
-                    if act == "GUERRE":
-                        st.success("⚔️ Votre attaque est terminée !")
-                        st.info("📖 Prenez le temps de lire les résultats ci-dessus, puis cliquez sur PRÊT quand vous êtes prêt à continuer.")
-                    else:  # GESTION
-                        st.success("💼 Votre gestion est terminée !")
-                        st.info("Vous avez acheté un terrain ou recruté un ouvrier. Cliquez sur PRÊT pour continuer.")
+                # CAS D : FIN DE GUERRE (Post-combat)
+                elif act == "GUERRE":
+                    st.success("⚔️ Votre attaque est terminée !")
+                    st.info("📖 Prenez le temps de lire les résultats ci-dessous.")
+
+                    # Affichage des logs du dernier combat (si disponibles)
+                    logs_combat = me.get("dernier_combat_logs", [])
+                    if logs_combat:
+                        with st.expander("📜 Revoir le détail du combat", expanded=False):
+                            for log in logs_combat:
+                                st.write(log)
 
                     st.divider()
-                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True):
+                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_guerre"):
+                        me["action_du_jour"] = "TERMINÉ"
+                        if st.session_state.user_name not in data.get("joueurs_prets", []):
+                            data["joueurs_prets"].append(st.session_state.user_name)
+                        save_data(data)
+                        st.rerun()
+
+                # CAS E : GESTION (Achat terrain/ouvrier terminé)
+                elif act == "GESTION":
+                    st.success("💼 Votre gestion est terminée !")
+                    st.info("Vous avez acheté un terrain ou recruté un ouvrier. Cliquez sur PRÊT pour continuer.")
+
+                    st.divider()
+                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_gestion"):
                         me["action_du_jour"] = "TERMINÉ"
                         if st.session_state.user_name not in data.get("joueurs_prets", []):
                             data["joueurs_prets"].append(st.session_state.user_name)
@@ -2117,7 +2136,7 @@ elif st.session_state.user_role == "PLAYER":
 
             if not est_pret:
                 # Le joueur n'est pas encore prêt
-                if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True):
+                if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_footer"):
                     if st.session_state.user_name not in data.get("joueurs_prets", []):
                         data["joueurs_prets"].append(st.session_state.user_name)
                     st.session_state.auto_refresh = True
