@@ -21,100 +21,65 @@ st.set_page_config(page_title="Royaume des Kaplas", layout="wide", page_icon="�
 def local_css():
     st.markdown("""
     <style>
-    /* IMPORT DE LA POLICE */
+    /* IMPORT POLICE */
     @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
 
     /* 1. APP & COULEURS */
     .stApp {
-        background-color: #fff4dc; /* Beige crème */
+        background-color: #fff4dc;
         color: #4a3b2a;
     }
 
-    /* 2. CACHER LE HEADER STREAMLIT (IMMERSION TOTALE) */
-    [data-testid="stHeader"] {
-        display: none; /* Cache le bandeau blanc en haut */
-    }
-    [data-testid="stToolbar"] {
-        visibility: hidden; /* Cache le menu options à droite */
-    }
-    .main .block-container {
-        padding-top: 2rem; /* Remonte le contenu vu qu'il n'y a plus de header */
-    }
-
-    /* 3. FORCAGE POLICE (INTELLIGENT) */
-    html, body, [class*="css"], div, p, span, button, select, textarea, h1, h2, h3, h4, h5, h6 {
-        font-family: 'MedievalSharp', cursive, sans-serif !important;
-    }
-
-    /* 4. FIX DES INPUTS NUMÉRIQUES (Le cœur du problème) */
-    /* Le texte (le chiffre) reste en médiéval */
-    input[type="number"] {
+    /* 2. POLICE MÉDIÉVALE PAR DÉFAUT */
+    h1, h2, h3, h4, h5, h6, .stMarkdown, p, span, div {
         font-family: 'MedievalSharp', cursive !important;
-        -moz-appearance: textfield; /* Cache les flèches sur Firefox pour être propre */
     }
 
-    /* On force une police système basique JUSTE pour les flèches (Chrome/Edge/Safari) */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: auto !important;
-        font-family: Arial, Helvetica, sans-serif !important;
-        height: auto;
-        opacity: 1 !important;
+    /* 3. EXCEPTIONS : POLICE STANDARD (Pour éviter les bugs d'affichage) */
+    /* Menus déroulants, inputs textuels, infobulles, alertes */
+    div[data-baseweb="select"], div[data-baseweb="popover"], div[role="listbox"], option,
+    input[type="text"], div[data-baseweb="toast"], div[class*="stAlert"] {
+        font-family: sans-serif !important;
     }
+
+    /* FIX CRITIQUE : Empêcher la police médiévale de casser les icônes (flèches expander, croix...) */
+    .st-emotion-cache-1h9usn1 svg, .st-emotion-cache-1h9usn1 span, [data-testid="stIconMaterial"] {
+        font-family: 'Material Symbols Rounded', sans-serif !important;
+        font-weight: normal !important;
+    }
+
+    /* On force aussi la police standard sur le résumé des expanders pour éviter les conflits */
+    .streamlit-expanderHeader {
+        font-family: sans-serif !important;
+    }
+
+    /* Titres des expanders (qui buggent souvent) */
+    .streamlit-expanderHeader p {
+        font-family: 'MedievalSharp', cursive !important; /* On force le médiéval ici car c'est joli */
+        font-size: 1.1em;
+    }
+
+    /* 4. UI CLEANING */
+    [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
+        display: none !important;
+    }
+    .main .block-container { padding-top: 1rem; }
 
     /* 5. SIDEBAR */
     [data-testid="stSidebar"] {
         background-color: #f7e8c6;
-        border-right: 1px solid #d4c5a3;
+        border-right: 2px solid #d4c5a3;
     }
 
-    /* Cache le bouton de fermeture de la sidebar sur mobile pour éviter les bugs visuels */
-    [data-testid="stSidebar"] button {
-        font-family: sans-serif !important;
-    }
-
-    /* 6. ELEMENTS BLANCS (Harmonisation) */
-    .stTextInput > div > div,
-    .stNumberInput > div > div,
-    .stSelectbox > div > div {
-        background-color: #ffffff !important;
-        border: 1px solid #8b4513;
-        color: #2c1a0b !important;
-        border-radius: 4px;
-    }
-
-    /* 7. BOUTONS STYLISÉS */
+    /* 6. BOUTONS */
     .stButton > button {
         background-color: #8b4513 !important;
         color: #fff4dc !important;
         border: 2px solid #5e2f0d !important;
         border-radius: 8px;
-        transition: all 0.2s;
+        font-family: 'MedievalSharp', cursive !important;
         font-size: 16px !important;
     }
-    .stButton > button:hover {
-        background-color: #a0522d !important;
-        transform: scale(1.02);
-    }
-    button[kind="secondary"] {
-        background-color: #e6d5a7 !important;
-        color: #4a3b2a !important;
-        border: 1px solid #8b4513 !important;
-    }
-
-    /* 8. ONGLETS */
-    .stTabs [data-baseweb="tab"] {
-        background-color: #ebdcb2;
-        color: #4a3b2a;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #fff4dc !important;
-        border-top: 2px solid #8b4513;
-        font-weight: bold;
-    }
-
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -145,51 +110,77 @@ def autoplay_audio(file_path, volume=1.0):
         print(f"Erreur audio: {e}")
 
 def gestion_audio(data):
-    """Gère les sons de phases et d'événements"""
-    # 1. Sons de Phase
-    if "last_audio_phase" not in st.session_state:
-        st.session_state.last_audio_phase = -1
+    # --- A. PRIORITÉ ABSOLUE : GUERRE ---
+    # Si on passe en Phase 3 (Marché) et qu'il y a eu des combats en Phase 2
+    if data["phase"] == 3 and data.get("trigger_sound_guerre"):
+        autoplay_audio("sounds/event_guerre.mp3") # Ou un son spécifique "rapport_bataille.mp3"
+        data["trigger_sound_guerre"] = False
+        st.session_state.last_phase_audio = 3 # On considère la phase comme "annoncée"
+        return # On s'arrête là pour ne pas jouer le son "Marché ouvert" par dessus
 
-    if st.session_state.last_audio_phase != data["phase"]:
-        # Correspondance Phase -> Fichier
-        map_phase = {
-            0: "intro.mp3",
-            1: "phase_1.mp3", # Réveil
-            2: "phase_2.mp3", # Travail
-            3: "phase_3.mp3", # Marché
-            4: "phase_4.mp3"  # Construction
-        }
-        son = map_phase.get(data["phase"])
-        if son:
-            autoplay_audio(f"sounds/{son}")
+    # --- B. PRIORITÉ : ÉVÉNEMENTS SPÉCIAUX ---
+    evt = data.get("evenement_actif")
+    evt_nom = evt["nom"] if evt else None
 
-        st.session_state.last_audio_phase = data["phase"]
+    if "last_event_audio" not in st.session_state:
+        st.session_state.last_event_audio = None
 
-    # 2. Sons d'Événements
-    current_evt = data.get("evenement_actif")
-    evt_name = current_evt["nom"] if current_evt else None
-
-    if "last_audio_event" not in st.session_state:
-        st.session_state.last_audio_event = None
-
-    if st.session_state.last_audio_event != evt_name and evt_name is not None:
-        # Correspondance Event -> Fichier
-        map_event = {
+    if st.session_state.last_event_audio != evt_nom and evt_nom is not None:
+        sounds_evt = {
             "Saison de la Chasse": "event_chasse.mp3",
+            "Guerre": "event_guerre.mp3",
+            "Attaque Surprise": "event_guerre.mp3",
             "Vol d'Ecu": "event_vol.mp3",
             "Vol de Ressource": "event_vol.mp3",
             "Passage du Roi": "event_roi.mp3",
             "Le Banquet": "event_banquet.mp3",
-            "Attaque Surprise": "event_guerre.mp3",
-            "Guerre": "event_guerre.mp3"
+            "Le Monument": "event_monument.mp3",
+            "L'Espion": "event_vol.mp3" # Son par défaut pour l'espion
         }
-        son = map_event.get(evt_name)
-        if son:
-            autoplay_audio(f"sounds/{son}")
+        if evt_nom in sounds_evt:
+            autoplay_audio(f"sounds/{sounds_evt[evt_nom]}")
 
-        st.session_state.last_audio_event = evt_name
-    elif evt_name is None:
-        st.session_state.last_audio_event = None
+        st.session_state.last_event_audio = evt_nom
+        return # Priorité à l'événement
+
+    if evt_nom is None:
+        st.session_state.last_event_audio = None
+
+    # --- C. VARIATIONS MARCHÉ (Matin - Phase 1) ---
+    if data["phase"] == 1 and st.session_state.get("last_phase_audio") != 1:
+        # On vérifie si le cours du Kapla a beaucoup bougé
+        old_k = data.get("cours_kapla_hier", 10)
+        new_k = data["cours_kapla"]
+        diff = new_k - old_k
+
+        # Si grosse variation, on joue le son spécial AU LIEU du "Cocorico"
+        if diff >= 3:
+            autoplay_audio("sounds/money_up.mp3") # Inflation
+            st.session_state.last_phase_audio = 1
+            return
+        elif diff <= -3:
+            autoplay_audio("sounds/money_down.mp3") # Soldes
+            st.session_state.last_phase_audio = 1
+            return
+
+    # --- D. SONS DE PHASE CLASSIQUES (Si rien d'autre) ---
+    if "last_phase_audio" not in st.session_state:
+        st.session_state.last_phase_audio = -1
+
+    current_phase = data["phase"]
+    if st.session_state.last_phase_audio != current_phase:
+        sounds_phase = {
+            1: "phase_1.mp3",
+            2: "phase_2.mp3",
+            3: "phase_3.mp3",
+            4: "phase_4.mp3"
+        }
+        if current_phase in sounds_phase:
+            autoplay_audio(f"sounds/{sounds_phase[current_phase]}")
+        elif current_phase == 0:
+             autoplay_audio("sounds/intro.mp3")
+
+        st.session_state.last_phase_audio = current_phase
 
 # Fichier de sauvegarde partagé
 DATA_FILE = "game_data_shared.json"
@@ -261,13 +252,32 @@ STATS_METIERS = {
 }
 
 CATALOGUE_OBJETS = {
-    "Jumelles": {"prix": 40, "type": "Outil", "icon": "🔭", "desc": "Chasse : Voir 10s avant", "help": "Permet de mieux repérer le gibier lors des événements de chasse."},
-    "Sextant": {"prix": 70, "type": "Outil", "icon": "🧭", "desc": "Chasse : Chercher 5s avant", "help": "Outil de navigation pour se déplacer plus vite."},
+    # --- OUTILS ---
+    "Jumelles": {"prix": 40, "type": "Outil", "icon": "🔭", "desc": "Chasse : Voir 10s avant", "help": "Permet de mieux repérer le gibier."},
+    "Sextant": {"prix": 70, "type": "Outil", "icon": "🧭", "desc": "Chasse : Chercher 5s avant", "help": "Navigation rapide."},
     "Petit Couteau": {"prix": 25, "type": "Outil", "icon": "🔪", "desc": "+30% gain Gibier", "help": "Augmente le rendement de la chasse."},
-    "Couteau Champignon": {"prix": 10, "type": "Outil", "icon": "🍄", "desc": "Récolte bonus", "help": "Végétarien : Permet de ramasser des objets 'non-animaux' pendant la chasse."},
-    "Coffre-fort": {"prix": 80, "type": "Protection", "icon": "🔒", "desc": "Protège du vol", "help": "Empêche les voleurs de piller votre or la nuit."},
-    "Charrette": {"prix": 35, "type": "Production", "icon": "🛒", "desc": "+2 Prod brute", "help": "Ajoute +2 au résultat final de votre production."},
+    "Couteau Champignon": {"prix": 10, "type": "Outil", "icon": "🍄", "desc": "Récolte bonus", "help": "Permet de ramasser des champignons."},
+    "Clous et Marteau": {"prix": 15, "type": "Outil", "icon": "🔨", "desc": "1 unité de Pâte à Fixe (IRL)", "help": "Autorise l'utilisation de pâte à fixe pour vos constructions.", "stackable": True},
+
+    # --- PROTECTION / PROD ---
+    "Coffre-fort": {"prix": 80, "type": "Protection", "icon": "🔒", "desc": "Protège du vol", "help": "Empêche le vol d'écus la nuit."},
+    "Charrette": {"prix": 35, "type": "Production", "icon": "🛒", "desc": "+2 Prod brute", "help": "Bonus de production."},
     "Cheval": {"prix": 60, "type": "Prestige", "icon": "🐎", "desc": "Prestige", "help": "Un signe de richesse."},
+
+    # --- ARMURES (Bonus Défense) ---
+    "Armure Commune": {"prix": 20, "type": "Armure", "icon": "⭐️", "desc": "+5 Défense", "help": "Protection basique.", "bonus_def": 5, "stackable": True},
+    "Armure Mythique": {"prix": 50, "type": "Armure", "icon": "⚜️", "desc": "+15 Défense", "help": "Protection avancée.", "bonus_def": 15, "stackable": True},
+    "Armure Légendaire": {"prix": 100, "type": "Armure", "icon": "🔱", "desc": "+35 Défense", "help": "Protection ultime.", "bonus_def": 35, "stackable": True},
+
+    # --- BOUCLIERS (Bonus Défense) ---
+    "Bouclier Commun": {"prix": 15, "type": "Bouclier", "icon": "⭐️", "desc": "+5 Défense", "help": "Petit bouclier en bois.", "bonus_def": 5, "stackable": True},
+    "Bouclier Mythique": {"prix": 40, "type": "Bouclier", "icon": "⚜️", "desc": "+12 Défense", "help": "Bouclier en acier trempé.", "bonus_def": 12, "stackable": True},
+    "Bouclier Légendaire": {"prix": 80, "type": "Bouclier", "icon": "🔱", "desc": "+25 Défense", "help": "Égide divine impénétrable.", "bonus_def": 25, "stackable": True},
+
+    # --- ARMES (Bonus Attaque) ---
+    "Arme Commune": {"prix": 20, "type": "Arme", "icon": "⭐️", "desc": "+5 Attaque", "help": "Arme standard.", "bonus_att": 5, "stackable": True},
+    "Arme Mythique": {"prix": 50, "type": "Arme", "icon": "⚜️", "desc": "+15 Attaque", "help": "Arme enchantée.", "bonus_att": 15, "stackable": True},
+    "Arme Légendaire": {"prix": 100, "type": "Arme", "icon": "🔱", "desc": "+35 Attaque", "help": "Arme des dieux.", "bonus_att": 35, "stackable": True},
 }
 
 ICON_GIBIER = {"Petit": "🐇", "Moyen": "🐗", "Gros": "🐻"}
@@ -478,15 +488,28 @@ class JoueurHelper:
         return base
 
     def get_defense(self):
+        # 1. Défense Armée
         armee = self.d.get("armee", {})
         da = armee.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
              armee.get("Archer",0)*STATS_COMBAT["Archer"]["base"] + \
              armee.get("Chevalier",0)*STATS_COMBAT["Chevalier"]["base"]
 
+        # 2. Défense Physique (Bâtiments)
         phy = self.d.get("def_physique", {})
         dp = (50 if phy.get("enceinte") else 0) + (20 if phy.get("porte") else 0) + (self.d.get("nb_tours",0)*VALEUR_PHYSIQUE["tour"])
 
-        dm = sum(o["valeur"] for o in self.d.get("objets_reels", []) if o.get("type") == "Élément de construction")
+        # 3. Défense Objets (Armures, Boucliers, Constructions spéciales)
+        dm = 0
+        for obj in self.d.get("objets_reels", []):
+            nom = obj.get("nom")
+            # Si l'objet est dans le catalogue et a un bonus de défense
+            if nom in CATALOGUE_OBJETS and "bonus_def" in CATALOGUE_OBJETS[nom]:
+                dm += CATALOGUE_OBJETS[nom]["bonus_def"]
+            # Ancienne compatibilité pour les éléments de construction libres
+            elif obj.get("type") == "Élément de construction":
+                dm += obj.get("valeur", 0)
+
+        # 4. Défense Kaplas (IRL)
         dk = (self.d.get("nb_toits",0)*3) + (self.d.get("kaplas",0)*2)
 
         return int(da + dp + dm + dk)
@@ -528,43 +551,63 @@ class JoueurHelper:
 def simuler_combat(att_dict, def_dict, malus_riviere=False):
     logs = []
 
+    # Récupération armée
     armee_att = att_dict.get("armee", {"Soldat":0, "Archer":0, "Chevalier":0})
     s, a, c = armee_att.get("Soldat",0), armee_att.get("Archer",0), armee_att.get("Chevalier",0)
 
+    # Calcul bonus armes attaquant
+    bonus_armes = 0
+    for obj in att_dict.get("objets_reels", []):
+        nom = obj.get("nom")
+        if nom in CATALOGUE_OBJETS and "bonus_att" in CATALOGUE_OBJETS[nom]:
+            bonus_armes += CATALOGUE_OBJETS[nom]["bonus_att"]
+
+    if bonus_armes > 0: logs.append(f"⚔️ Bonus Armes: +{bonus_armes}")
+
+    # 1. Jet de Dé (Influence de +/- 30%)
     de = random.randint(1, 20)
-    bonus = 0
+    bonus_de = 0
     msg = ""
+    if de == 1: bonus_de, msg = -0.5, "💀 ÉCHEC CRITIQUE (Dé 1)"
+    elif de == 20: bonus_de, msg = 0.5, "🌟 COUP DE GÉNIE (Dé 20)"
+    elif de >= 15: bonus_de, msg = 0.2, "🔥 Moral élevé (+20%)"
+    elif de <= 5: bonus_de, msg = -0.2, "🌧️ Terrain boueux (-20%)"
 
-    if de == 1: bonus, msg = -0.5, "💀 ÉCHEC CRITIQUE !"
-    elif de == 20: bonus, msg = 0.5, "🌟 COUP DE GÉNIE !"
-    elif de > 15: bonus, msg = 0.2, "🔥 Moral élevé (+20%)"
-    elif de < 5: bonus, msg = -0.2, "🌧️ Mauvais temps (-20%)"
+    logs.append(f"🎲 Dé: {de}/20 {msg}")
 
-    mult_s, mult_a, mult_c = random.randint(1,3), random.randint(2,5), random.randint(5,10)
+    # 2. Calcul Force de Frappe (Rééquilibré)
+    # Plus de multiplicateur x10 aléatoire. On a une base solide + une petite variation.
+    force_base = (s * 10) + (a * 15) + (c * 40)
 
-    dmg = s*10*mult_s + a*15*mult_a + c*40*mult_c
-    total_att = int(dmg * (1 + bonus))
+    # Bonus aléatoire léger (0.9 à 1.3)
+    var_aleatoire = random.uniform(0.9, 1.3)
 
-    logs.append(f"🎲 Dé: {de}/20")
-    if msg: logs.append(msg)
-    if s > 0: logs.append(f"🗡️ Soldats (x{mult_s}): {s*10*mult_s}")
-    if a > 0: logs.append(f"🏹 Archers (x{mult_a}): {a*15*mult_a}")
-    if c > 0: logs.append(f"🐎 Chevaliers (x{mult_c}): {c*40*mult_c}")
+    # La force brute inclut maintenant le bonus des armes
+    dmg = (force_base + bonus_armes) * var_aleatoire
 
+    logs.append(f"⚔️ Troupes: {s} Soldats, {a} Archers, {c} Chevaliers")
+    logs.append(f"💪 Force totale: {int(dmg)} (Base: {force_base} + Armes: {bonus_armes})")
+
+    # Application du Dé
+    total_att = int(dmg * (1 + bonus_de))
+
+    # Malus Rivière
     if malus_riviere:
         total_att = int(total_att / 2)
-        logs.append("🌊 RIVIÈRE: Attaque /2")
+        logs.append("🌊 RIVIÈRE: Malus traversée (/2)")
 
+    # Calcul Défense
     helper_def = JoueurHelper(def_dict)
     total_def = helper_def.get_defense()
 
     diff = total_att - total_def
+
     if total_att > total_def:
-        if diff > 100: logs.append("💥 MASSACRE !")
-        else: logs.append("⚔️ VICTOIRE")
+        if diff > 50: logs.append("💥 VICTOIRE ÉCRASANTE !")
+        else: logs.append("⚔️ VICTOIRE DIFFICILE")
     else:
-        if abs(diff) < 20: logs.append("🧱 Tenu de justesse")
-        else: logs.append("🏰 IMPRENABLE")
+        if abs(diff) < 20: logs.append("🛡️ DÉFENSE HÉROÏQUE (Tenu de justesse)")
+        else: logs.append("🏰 FORTERESSE IMPRENABLE")
 
     return total_att, total_def, logs
 
@@ -595,6 +638,20 @@ def next_phase(data):
         for k, v in base.items():
             data["cours_gibier"][k] = max(10, v + random.randint(-10, 15))
 
+        # --- SYSTÈME DE PIOCHE DU MATIN ---
+        # Tirage au sort du type de stock de pièces
+        stock_du_jour = random.choice(["Petite Bourse 💰", "Sac Moyen 💰💰", "Grand Coffre 💎"])
+
+        # Tri des joueurs par richesse croissante (le plus pauvre commence)
+        joueurs_vivants = [j for j in data["joueurs"] if j.get("vie", 0) > 0]
+        ordre_joueurs = sorted(joueurs_vivants, key=lambda x: x.get("ecus", 0))
+        noms_ordres = [j["nom"] for j in ordre_joueurs]
+
+        data["info_pioche"] = {
+            "type": stock_du_jour,
+            "ordre": noms_ordres
+        }
+
         # Reset Actions
         data["logs_guerre"] = []
         data["joueurs_prets"] = []
@@ -607,6 +664,15 @@ def next_phase(data):
         data["phase"] = 2
         data["joueurs_prets"] = []
         trigger_event(data, "Journée")
+    elif data["phase"] == 2:
+        # Transition vers le MARCHÉ (Phase 3) - Récap Guerre
+        data["phase"] = 3
+        data["joueurs_prets"] = []
+
+        # Si guerre il y a eu, on prépare un signal sonore pour le Master
+        if data.get("logs_guerre"):
+            # On stocke une info temporaire pour que le gestion_audio la lise une fois
+            data["trigger_sound_guerre"] = True
     else:
         data["phase"] += 1
         data["joueurs_prets"] = []
@@ -799,6 +865,11 @@ if st.session_state.user_role is None:
                     st.rerun()
     st.stop()
 
+# --- GESTION AUDIO GLOBALE (MAITRE UNIQUEMENT) ---
+# On le place ICI, avant tout blocage (st.stop), pour être sûr que le son se lance
+if st.session_state.user_role == "MASTER":
+    gestion_audio(data)
+
 # --- GESTION ÉVÉNEMENT BLOQUANT (POUR LE MASTER UNIQUEMENT) ---
 if data.get("evenement_actif") and st.session_state.user_role == "MASTER":
     evt = data["evenement_actif"]
@@ -841,9 +912,6 @@ if data.get("evenement_actif") and st.session_state.user_role == "MASTER":
 # VUE MAÎTRE DU JEU (DASHBOARD)
 # ==========================================
 if st.session_state.user_role == "MASTER":
-    # Sons d'annonces (phases et événements)
-    gestion_audio(data)
-
     st.sidebar.title("🎮 Panneau Maître")
 
     # --- LOGIQUE AUTOMATIQUE DE PASSAGE DE PHASE ---
@@ -981,6 +1049,21 @@ if st.session_state.user_role == "MASTER":
                     })
                 st.dataframe(pd.DataFrame(df_data), use_container_width=True)
 
+        # --- GESTION AUDIO AVANCÉE ---
+        # 1. Check Récap Guerre (Transition 2->3)
+        if data.get("trigger_sound_guerre"):
+            autoplay_audio("sounds/attaque_reussie.mp3")  # Son de bataille
+            data["trigger_sound_guerre"] = False  # On le joue une seule fois
+            save_data(data)
+
+        # 2. Blagues Aléatoires (Seulement si pas d'event actif)
+        if not data.get("evenement_actif"):
+            # 5% de chance à chaque refresh (toutes les 5s)
+            if random.random() < 0.05:
+                blagues = ["joke_1.mp3", "joke_2.mp3", "joke_3.mp3", "joke_4.mp3", "joke_5.mp3"]
+                son_blague = random.choice(blagues)
+                autoplay_audio(f"sounds/{son_blague}")
+
         # --- AUTO-REFRESH LOOP ---
         # Une fois l'interface affichée, on attend 5s puis on reload
         # Cela permet au Master de voir l'écran pendant 5s, puis de vérifier si les joueurs sont prêts
@@ -1007,6 +1090,18 @@ elif st.session_state.user_role == "PLAYER":
             st.session_state.user_role = None
             st.rerun()
         st.stop()
+
+    # --- ALERTE ATTAQUE SUBIE ---
+    if me.get("rapport_combat"):
+        st.error("⚔️ VOUS AVEZ ÉTÉ ATTAQUÉ CETTE NUIT !")
+        for msg in me["rapport_combat"]:
+            st.write(msg)
+
+        if st.button("❌ J'ai vu (Fermer l'alerte)", key="close_alert"):
+            me["rapport_combat"] = []
+            save_data(data)
+            st.rerun()
+        st.divider()
 
     # --- GESTION DE LA MORT ---
     if me["vie"] <= 0:
@@ -1436,6 +1531,31 @@ elif st.session_state.user_role == "PLAYER":
 
         elif phase == 1:
             st.header("🌅 Phase 1 : Réveil")
+
+            # --- AFFICHAGE PIOCHE DU MATIN ---
+            if "info_pioche" in data:
+                info = data["info_pioche"]
+                st.markdown(f"""
+                <div style="background:#ffd700;padding:15px;border-radius:10px;border:3px solid #8b6914;margin-bottom:20px;">
+                    <h3 style="color:#4a3b2a;text-align:center;margin:0;">👐 Distribution du Matin : {info['type']}</h3>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.write("**📋 Ordre de passage (du plus pauvre au plus riche) :**")
+
+                # Affichage de l'ordre avec mise en évidence
+                for idx, nom in enumerate(info['ordre']):
+                    if idx == 0:
+                        st.markdown(f"### 🥇 **{nom}** (Premier à se servir !)")
+                    elif idx == 1:
+                        st.markdown(f"🥈 **{nom}**")
+                    elif idx == 2:
+                        st.markdown(f"🥉 **{nom}**")
+                    else:
+                        st.write(f"{idx+1}. {nom}")
+
+                st.divider()
+
             if me.get("rapport_nuit"):
                 with st.expander("📜 Bilan de la nuit", expanded=True):
                     for ligne in me["rapport_nuit"]:
@@ -1970,11 +2090,22 @@ elif st.session_state.user_role == "PLAYER":
                 st.subheader("Boutique d'objets")
 
                 for nom_obj, info in CATALOGUE_OBJETS.items():
-                    if helper.a_objet(nom_obj):
+                    deja_possede = helper.a_objet(nom_obj)
+                    is_stackable = info.get("stackable", False)
+
+                    # On affiche le bouton d'achat si l'objet n'est pas possédé OU s'il est cumulable
+                    if deja_possede and not is_stackable:
                         st.success(f"✅ {info['icon']} {nom_obj} - Déjà possédé")
                     else:
                         col1, col2 = st.columns([3, 1])
-                        col1.write(f"{info['icon']} **{nom_obj}** - {info['desc']}")
+                        titre = f"{info['icon']} **{nom_obj}** - {info['desc']}"
+
+                        # Si cumulable et déjà possédé, on montre combien on en a
+                        if is_stackable and deja_possede:
+                            count = len([o for o in me["objets_reels"] if o["nom"] == nom_obj])
+                            titre += f" (Possédé: {count})"
+
+                        col1.write(titre)
                         col1.caption(info.get('help', ''))
                         if col2.button(f"{info['prix']}$", key=f"obj_{nom_obj}"):
                             if me["ecus"] >= info['prix']:
