@@ -21,63 +21,30 @@ st.set_page_config(page_title="Royaume des Kaplas", layout="wide", page_icon="�
 def local_css():
     st.markdown("""
     <style>
-    /* IMPORT POLICE */
-    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
-
     /* 1. APP & COULEURS */
     .stApp {
         background-color: #fff4dc;
         color: #4a3b2a;
     }
 
-    /* 2. POLICE MÉDIÉVALE PAR DÉFAUT */
-    h1, h2, h3, h4, h5, h6, .stMarkdown, p, span, div {
-        font-family: 'MedievalSharp', cursive !important;
-    }
-
-    /* 3. EXCEPTIONS : POLICE STANDARD (Pour éviter les bugs d'affichage) */
-    /* Menus déroulants, inputs textuels, infobulles, alertes */
-    div[data-baseweb="select"], div[data-baseweb="popover"], div[role="listbox"], option,
-    input[type="text"], div[data-baseweb="toast"], div[class*="stAlert"] {
-        font-family: sans-serif !important;
-    }
-
-    /* FIX CRITIQUE : Empêcher la police médiévale de casser les icônes (flèches expander, croix...) */
-    .st-emotion-cache-1h9usn1 svg, .st-emotion-cache-1h9usn1 span, [data-testid="stIconMaterial"] {
-        font-family: 'Material Symbols Rounded', sans-serif !important;
-        font-weight: normal !important;
-    }
-
-    /* On force aussi la police standard sur le résumé des expanders pour éviter les conflits */
-    .streamlit-expanderHeader {
-        font-family: sans-serif !important;
-    }
-
-    /* Titres des expanders (qui buggent souvent) */
-    .streamlit-expanderHeader p {
-        font-family: 'MedievalSharp', cursive !important; /* On force le médiéval ici car c'est joli */
-        font-size: 1.1em;
-    }
-
-    /* 4. UI CLEANING */
+    /* 2. UI CLEANING */
     [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
         display: none !important;
     }
     .main .block-container { padding-top: 1rem; }
 
-    /* 5. SIDEBAR */
+    /* 3. SIDEBAR */
     [data-testid="stSidebar"] {
         background-color: #f7e8c6;
         border-right: 2px solid #d4c5a3;
     }
 
-    /* 6. BOUTONS */
+    /* 4. BOUTONS */
     .stButton > button {
         background-color: #8b4513 !important;
         color: #fff4dc !important;
         border: 2px solid #5e2f0d !important;
         border-radius: 8px;
-        font-family: 'MedievalSharp', cursive !important;
         font-size: 16px !important;
     }
     </style>
@@ -226,9 +193,9 @@ BONUS_PROD_ENFANT = 1.0
 PROBA_EVENEMENT = 1.0  # Probabilité qu'un événement se produise chaque jour (0.3 = 30%)
 
 STATS_COMBAT = {
-    "Soldat": {"cout": 15, "base": 10, "desc": "Fantassin", "icon": "🗡️"},
-    "Archer": {"cout": 25, "base": 15, "desc": "Défenseur", "icon": "🏹"},
-    "Chevalier": {"cout": 50, "base": 40, "desc": "Élite", "icon": "🐎"}
+    "Soldat": {"cout": 50, "base": 2, "desc": "Fantassin (Besoin d'armes)", "icon": "🗡️"},
+    "Archer": {"cout": 80, "base": 5, "desc": "Tireur (Besoin d'arc)", "icon": "🏹"},
+    "Chevalier": {"cout": 150, "base": 10, "desc": "Unité montée (Req. Cheval)", "icon": "🐎"}
 }
 
 VALEUR_PHYSIQUE = {"enceinte": 50, "porte": 20, "tour": 15}
@@ -237,12 +204,12 @@ STATS_METIERS = {
     "Fermier": {
         "desc": "Le Manager. Recrutez pour gagner.",
         "cout_terrain": 15, "bonus_terrain": 0.2, "bonus_ouvrier": 1.5,
-        "cout_fatigue": 15, "base_min": 3, "base_max": 6, "icon": "🌾"
+        "cout_fatigue": 15, "base_min": 1, "base_max": 5, "icon": "🌾"
     },
     "Bûcheron": {
         "desc": "L'Industriel. Fort tout seul.",
         "cout_terrain": 30, "bonus_terrain": 0.8, "bonus_ouvrier": 0.5,
-        "cout_fatigue": 20, "base_min": 2, "base_max": 5, "icon": "🪓"
+        "cout_fatigue": 20, "base_min": 0, "base_max": 4, "icon": "🪓"
     },
     "Vigneron": {
         "desc": "L'Investisseur. Patience = Richesse.",
@@ -258,11 +225,14 @@ CATALOGUE_OBJETS = {
     "Petit Couteau": {"prix": 25, "type": "Outil", "icon": "🔪", "desc": "+30% gain Gibier", "help": "Augmente le rendement de la chasse."},
     "Couteau Champignon": {"prix": 10, "type": "Outil", "icon": "🍄", "desc": "Récolte bonus", "help": "Permet de ramasser des champignons."},
     "Clous et Marteau": {"prix": 15, "type": "Outil", "icon": "🔨", "desc": "1 unité de Pâte à Fixe (IRL)", "help": "Autorise l'utilisation de pâte à fixe pour vos constructions.", "stackable": True},
+    "Compas": {"prix": 60, "type": "Outil", "icon": "🧭", "desc": "Bonus Achat Kapla", "help": "Pour 5 Kaplas achetés, 1 offert."},
+    "Canne à pêche": {"prix": 120, "type": "Outil", "icon": "🎣", "desc": "Pêche matinale", "help": "Rapporte de la nourriture et parfois augmente l'estomac."},
 
     # --- PROTECTION / PROD ---
     "Coffre-fort": {"prix": 80, "type": "Protection", "icon": "🔒", "desc": "Protège du vol", "help": "Empêche le vol d'écus la nuit."},
-    "Charrette": {"prix": 35, "type": "Production", "icon": "🛒", "desc": "+2 Prod brute", "help": "Bonus de production."},
+    "Charrette": {"prix": 150, "type": "Production", "icon": "🛒", "desc": "+300% Production", "help": "Nécessite un Cheval. Décuple votre production."},
     "Cheval": {"prix": 60, "type": "Prestige", "icon": "🐎", "desc": "Prestige", "help": "Un signe de richesse."},
+    "Feu de camp": {"prix": 30, "type": "Survie", "icon": "🔥", "desc": "Protection Froid", "help": "Obligatoire en Hiver pour ne pas perdre de PV la nuit."},
 
     # --- ARMURES (Bonus Défense) ---
     "Armure Commune": {"prix": 20, "type": "Armure", "icon": "⭐️", "desc": "+5 Défense", "help": "Protection basique.", "bonus_def": 5, "stackable": True},
@@ -278,6 +248,7 @@ CATALOGUE_OBJETS = {
     "Arme Commune": {"prix": 20, "type": "Arme", "icon": "⭐️", "desc": "+5 Attaque", "help": "Arme standard.", "bonus_att": 5, "stackable": True},
     "Arme Mythique": {"prix": 50, "type": "Arme", "icon": "⚜️", "desc": "+15 Attaque", "help": "Arme enchantée.", "bonus_att": 15, "stackable": True},
     "Arme Légendaire": {"prix": 100, "type": "Arme", "icon": "🔱", "desc": "+35 Attaque", "help": "Arme des dieux.", "bonus_att": 35, "stackable": True},
+    "Canon": {"prix": 200, "type": "Arme", "icon": "💣", "desc": "Artillerie lourde", "help": "Bonus d'attaque basé sur un tir de précision IRL (3 essais).", "bonus_att": 0, "stackable": False},
 }
 
 ICON_GIBIER = {"Petit": "🐇", "Moyen": "🐗", "Gros": "🐻"}
@@ -337,38 +308,62 @@ def charger_carte_background():
     return img
 
 def generer_carte(joueurs):
-    fond = charger_carte_background().copy()
-    draw = ImageDraw.Draw(fond)
-    w, h = fond.size
-    
-    
+    # Création d'une carte procédurale avec biomes
+    w, h = 800, 500
+    img = Image.new("RGB", (w, h), "white")
+    draw = ImageDraw.Draw(img)
+
+    # BIOME MONTAGNE/FORÊT (Gauche - Vert Foncé)
+    draw.rectangle([(0, 0), (int(w*0.45), h)], fill="#2e4a28", outline=None)
+
+    # RIVIÈRE (Milieu - Bleu)
+    draw.rectangle([(int(w*0.45), 0), (int(w*0.55), h)], fill="#4da6ff", outline=None)
+
+    # BIOME DÉSERT/MER (Droite - Jaune Sable)
+    draw.rectangle([(int(w*0.55), 0), (w, h)], fill="#e6c288", outline=None)
+
+    # Texte Biomes (en haut)
+    try:
+        from PIL import ImageFont
+        font_title = ImageFont.truetype("arial.ttf", 16)
+    except:
+        font_title = None
+
+    draw.text((20, 20), "🌲 MONTAGNES (Prod x3 | Météo Violente)", fill="white", font=font_title)
+    draw.text((w-350, 20), "🏜️ DÉSERT (Prod x1 | Climat Sûr)", fill="black", font=font_title)
+
     # Dessiner les joueurs et leurs constructions
     for j in joueurs:
         if j.get("vie", 0) <= 0: continue
         x, y = j.get("x", 50), j.get("y", 50)
         px, py = int((x/100)*w), int((y/100)*h)
-        
+
         # Taille du carré selon le nombre de terrains
         nb_terrains = j.get("nb_terrains", 0)
         taille_base = 12
         taille = taille_base + (nb_terrains * 2)
         taille = min(taille, 30)  # Limite max
-        
-        # Couleur selon la rive
-        col_fill = "#8b4513" if x < 50 else "#a0522d"  # Marron clair/foncé
-        col_outline = "#daa520"  # Doré
-        
+
+        # Couleur selon le biome
+        biome = j.get("biome", "Désert/Mer")
+        if biome == "Montagne/Forêt":
+            col_fill = "#1a3d14"  # Vert très foncé
+            col_outline = "#90ee90"  # Vert clair
+        else:
+            col_fill = "#d4a76a"  # Beige sable
+            col_outline = "#ffd700"  # Doré
+
         # Dessiner le carré du joueur
         draw.rectangle(
             [(px-taille//2, py-taille//2), (px+taille//2, py+taille//2)],
             fill=col_fill,
             outline=col_outline,
-            width=2
+            width=3
         )
-        
+
         # Nom du joueur
         draw.text((px-15, py-taille//2-15), j["nom"][:4], fill="white")
-        
+
         # Dessiner les tours (petits cercles gris)
         nb_tours = j.get("nb_tours", 0)
         for i in range(nb_tours):
@@ -379,8 +374,8 @@ def generer_carte(joueurs):
                 outline="#555555",
                 width=1
             )
-    
-    return fond
+
+    return img
 
 def get_local_ip():
     """Détecte automatiquement l'adresse IP locale de la machine (Wi-Fi ou Ethernet)"""
@@ -480,15 +475,24 @@ class JoueurHelper:
         b_o = o * stats["bonus_ouvrier"]
 
         b_c = 0
-        if self.d.get("conjoint"): b_c = 0.1 * jour_actuel
+        if self.d.get("conjoint"): b_c = 0.1 * self.d["conjoint"]["jours_mariage"] # Correction: cumulatif jours
         b_e = self.d.get("enfants", 0) * BONUS_PROD_ENFANT
 
-        base = 1.0 + b_t + b_o + b_c + b_e
+        # Bonus Charrette : +300% (donc +3.0 au coefficient)
+        b_charrette = 3.0 if self.a_objet("Charrette") else 0
+
+        base = 1.0 + b_t + b_o + b_c + b_e + b_charrette
+
+        # BONUS BIOME : Montagne/Forêt = x3, Désert = x1
+        biome = self.d.get("biome", "Désert/Mer")
+        if biome == "Montagne/Forêt":
+            base *= 3.0  # Triple production
+
         if self.d.get("bonus_banquet", 0) > 0: base *= 2
         return base
 
     def get_defense(self):
-        # 1. Défense Armée
+        # 1. Défense Armée (base faible)
         armee = self.d.get("armee", {})
         da = armee.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
              armee.get("Archer",0)*STATS_COMBAT["Archer"]["base"] + \
@@ -498,27 +502,79 @@ class JoueurHelper:
         phy = self.d.get("def_physique", {})
         dp = (50 if phy.get("enceinte") else 0) + (20 if phy.get("porte") else 0) + (self.d.get("nb_tours",0)*VALEUR_PHYSIQUE["tour"])
 
-        # 3. Défense Objets (Armures, Boucliers, Constructions spéciales)
-        dm = 0
+        # 3. DISTRIBUTION INTELLIGENTE DES ARMURES/BOUCLIERS
+        # Récupérer toutes les armures et boucliers
+        armures_dispo = []
         for obj in self.d.get("objets_reels", []):
             nom = obj.get("nom")
-            # Si l'objet est dans le catalogue et a un bonus de défense
-            if nom in CATALOGUE_OBJETS and "bonus_def" in CATALOGUE_OBJETS[nom]:
-                dm += CATALOGUE_OBJETS[nom]["bonus_def"]
-            # Ancienne compatibilité pour les éléments de construction libres
-            elif obj.get("type") == "Élément de construction":
-                dm += obj.get("valeur", 0)
+            if nom in CATALOGUE_OBJETS:
+                type_obj = CATALOGUE_OBJETS[nom].get("type")
+                if type_obj in ["Armure", "Bouclier"]:
+                    armures_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_def", 0))
+
+        # Trier par défense décroissante
+        armures_dispo.sort(reverse=True)
+
+        # Nombre de troupes pouvant porter des armures
+        nb_troupes = armee.get("Soldat",0) + armee.get("Archer",0) + armee.get("Chevalier",0)
+
+        # Distribuer les armures
+        bonus_armures_total = 0
+        armures_equipees = min(len(armures_dispo), nb_troupes)
+        for i in range(armures_equipees):
+            bonus_armures_total += armures_dispo[i]
+
+        # Bonus équipement du JOUEUR (Chef)
+        bonus_equipement_chef = 0
+        equipement = self.d.get("equipement_joueur", {})
+        for slot, item in equipement.items():
+            if item and "bonus_def" in item:
+                bonus_equipement_chef += item["bonus_def"]
 
         # 4. Défense Kaplas (IRL)
         dk = (self.d.get("nb_toits",0)*3) + (self.d.get("kaplas",0)*2)
 
-        return int(da + dp + dm + dk)
+        total = int(da + dp + bonus_armures_total + bonus_equipement_chef + dk)
+
+        # Bonus Biome Désert
+        if self.d.get("biome") == "Désert/Mer":
+            total = int(total * 1.5)
+
+        return total
 
     def get_puissance(self):
+        # 1. Puissance de base de l'armée
         a = self.d.get("armee", {})
-        return a.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
+        base = a.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
                a.get("Archer",0)*STATS_COMBAT["Archer"]["base"] + \
                a.get("Chevalier",0)*STATS_COMBAT["Chevalier"]["base"]
+
+        # 2. DISTRIBUTION INTELLIGENTE DES ARMES
+        armes_dispo = []
+        for obj in self.d.get("objets_reels", []):
+            nom = obj.get("nom")
+            if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
+                armes_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_att", 0))
+
+        armes_dispo.sort(reverse=True)
+
+        # Nombre de troupes pouvant porter des armes (Soldats + Chevaliers)
+        nb_troupes = a.get("Soldat",0) + a.get("Chevalier",0)
+
+        # Distribuer les armes
+        bonus_armes_total = 0
+        armes_equipees = min(len(armes_dispo), nb_troupes)
+        for i in range(armes_equipees):
+            bonus_armes_total += armes_dispo[i]
+
+        # 3. Bonus équipement du JOUEUR (Chef)
+        bonus_equipement_chef = 0
+        equipement = self.d.get("equipement_joueur", {})
+        for slot, item in equipement.items():
+            if item and "bonus_att" in item:
+                bonus_equipement_chef += item["bonus_att"]
+
+        return int(base + bonus_armes_total + bonus_equipement_chef)
 
     def a_objet(self, nom_objet):
         for obj in self.d.get("objets_reels", []):
@@ -548,21 +604,44 @@ class JoueurHelper:
 # 4. LOGIQUE DE JEU (EVENTS & ACTIONS)
 # ==========================================
 
-def simuler_combat(att_dict, def_dict, malus_riviere=False):
+def simuler_combat(att_dict, def_dict, malus_riviere=False, touches_canon=0):
     logs = []
 
     # Récupération armée
     armee_att = att_dict.get("armee", {"Soldat":0, "Archer":0, "Chevalier":0})
     s, a, c = armee_att.get("Soldat",0), armee_att.get("Archer",0), armee_att.get("Chevalier",0)
 
-    # Calcul bonus armes attaquant
-    bonus_armes = 0
+    # DISTRIBUTION INTELLIGENTE DES ARMES
+    # 1. Récupérer toutes les armes disponibles
+    armes_dispo = []
     for obj in att_dict.get("objets_reels", []):
         nom = obj.get("nom")
-        if nom in CATALOGUE_OBJETS and "bonus_att" in CATALOGUE_OBJETS[nom]:
-            bonus_armes += CATALOGUE_OBJETS[nom]["bonus_att"]
+        if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
+            armes_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_att", 0))
 
-    if bonus_armes > 0: logs.append(f"⚔️ Bonus Armes: +{bonus_armes}")
+    # 2. Trier par puissance décroissante (meilleures d'abord)
+    armes_dispo.sort(reverse=True)
+
+    # 3. Nombre de troupes pouvant porter des armes (Soldats + Chevaliers)
+    nb_troupes = s + c  # Les archers ont leurs propres arcs inclus
+
+    # 4. Distribuer les armes aux soldats
+    bonus_armes_total = 0
+    armes_equipees = min(len(armes_dispo), nb_troupes)
+    for i in range(armes_equipees):
+        bonus_armes_total += armes_dispo[i]
+
+    # Bonus équipement du JOUEUR (Chef)
+    bonus_equipement_chef = 0
+    equipement = att_dict.get("equipement_joueur", {})
+    for slot, item in equipement.items():
+        if item and "bonus_att" in item:
+            bonus_equipement_chef += item["bonus_att"]
+
+    if bonus_armes_total > 0:
+        logs.append(f"⚔️ Arsenal: {armes_equipees} armes distribuées (+{bonus_armes_total})")
+    if bonus_equipement_chef > 0:
+        logs.append(f"👑 Chef équipé: +{bonus_equipement_chef}")
 
     # 1. Jet de Dé (Influence de +/- 30%)
     de = random.randint(1, 20)
@@ -575,21 +654,29 @@ def simuler_combat(att_dict, def_dict, malus_riviere=False):
 
     logs.append(f"🎲 Dé: {de}/20 {msg}")
 
-    # 2. Calcul Force de Frappe (Rééquilibré)
-    # Plus de multiplicateur x10 aléatoire. On a une base solide + une petite variation.
-    force_base = (s * 10) + (a * 15) + (c * 40)
+    # 2. Calcul Force de Frappe (NOUVEAU SYSTÈME - Stats faibles)
+    # Force de base très faible (stats réduites)
+    force_base = (s * STATS_COMBAT["Soldat"]["base"]) + \
+                 (a * STATS_COMBAT["Archer"]["base"]) + \
+                 (c * STATS_COMBAT["Chevalier"]["base"])
 
     # Bonus aléatoire léger (0.9 à 1.3)
     var_aleatoire = random.uniform(0.9, 1.3)
 
-    # La force brute inclut maintenant le bonus des armes
-    dmg = (force_base + bonus_armes) * var_aleatoire
+    # La force brute inclut la base faible + armes + équipement chef
+    dmg = (force_base + bonus_armes_total + bonus_equipement_chef) * var_aleatoire
 
     logs.append(f"⚔️ Troupes: {s} Soldats, {a} Archers, {c} Chevaliers")
-    logs.append(f"💪 Force totale: {int(dmg)} (Base: {force_base} + Armes: {bonus_armes})")
+    logs.append(f"💪 Force totale: {int(dmg)} (Base: {force_base} + Arsenal: {bonus_armes_total} + Chef: {bonus_equipement_chef})")
 
     # Application du Dé
     total_att = int(dmg * (1 + bonus_de))
+
+    # Bonus Canon (Artillerie lourde)
+    if touches_canon > 0:
+        bonus_canon = touches_canon * 20
+        total_att += bonus_canon
+        logs.append(f"💣 ARTILLERIE : +{bonus_canon} dégâts ({touches_canon} figurines touchées)")
 
     # Malus Rivière
     if malus_riviere:
@@ -605,9 +692,17 @@ def simuler_combat(att_dict, def_dict, malus_riviere=False):
     if total_att > total_def:
         if diff > 50: logs.append("💥 VICTOIRE ÉCRASANTE !")
         else: logs.append("⚔️ VICTOIRE DIFFICILE")
+        # Comptabiliser victoire pour l'attaquant
+        if "nb_guerres_gagnees" not in att_dict:
+            att_dict["nb_guerres_gagnees"] = 0
+        att_dict["nb_guerres_gagnees"] += 1
     else:
         if abs(diff) < 20: logs.append("🛡️ DÉFENSE HÉROÏQUE (Tenu de justesse)")
         else: logs.append("🏰 FORTERESSE IMPRENABLE")
+        # Comptabiliser victoire pour le défenseur
+        if "nb_guerres_gagnees" not in def_dict:
+            def_dict["nb_guerres_gagnees"] = 0
+        def_dict["nb_guerres_gagnees"] += 1
 
     return total_att, total_def, logs
 
@@ -638,36 +733,26 @@ def next_phase(data):
         for k, v in base.items():
             data["cours_gibier"][k] = max(10, v + random.randint(-10, 15))
 
-        # --- SYSTÈME DE PIOCHE DU MATIN ---
-        # Tirage au sort du type de stock de pièces
-        stock_du_jour = random.choice(["Petite Bourse 💰", "Sac Moyen 💰💰", "Grand Coffre 💎"])
-
-        # Tri des joueurs par richesse croissante (le plus pauvre commence)
-        joueurs_vivants = [j for j in data["joueurs"] if j.get("vie", 0) > 0]
-        ordre_joueurs = sorted(joueurs_vivants, key=lambda x: x.get("ecus", 0))
-        noms_ordres = [j["nom"] for j in ordre_joueurs]
-
-        data["info_pioche"] = {
-            "type": stock_du_jour,
-            "ordre": noms_ordres
-        }
-
         # Reset Actions
         data["logs_guerre"] = []
         data["joueurs_prets"] = []
+        data["timer_start"] = None  # Reset timer
         for j in data["joueurs"]:
             j["action_du_jour"] = None
+            j["nb_actions_jour"] = 0  # Reset compteur d'actions quotidiennes
 
         trigger_event(data, "Matin")
 
     elif data["phase"] == 1:
         data["phase"] = 2
         data["joueurs_prets"] = []
+        data["timer_start"] = None  # Reset timer
         trigger_event(data, "Journée")
     elif data["phase"] == 2:
         # Transition vers le MARCHÉ (Phase 3) - Récap Guerre
         data["phase"] = 3
         data["joueurs_prets"] = []
+        data["timer_start"] = None  # Reset timer
 
         # Si guerre il y a eu, on prépare un signal sonore pour le Master
         if data.get("logs_guerre"):
@@ -676,6 +761,7 @@ def next_phase(data):
     else:
         data["phase"] += 1
         data["joueurs_prets"] = []
+        data["timer_start"] = None  # Reset timer
 
     save_data(data)
 
@@ -717,14 +803,74 @@ def executer_nuit(data):
 
         helper = JoueurHelper(j)
         besoin = helper.get_besoin_toits_famille() + (j.get("nb_ouvriers", 0) * 2)
-        if nom_s == "Hiver":
+
+        # SYSTÈME MÉTÉO AVANCÉ avec BIOMES
+        biome = j.get("biome", "Désert/Mer")
+
+        # Le Désert est immunisé aux intempéries
+        if biome == "Désert/Mer":
+            # Pas de dégâts météo, mais on garde la pénalité de toits manquants
+            if nom_s == "Hiver" and j.get("nb_toits", 0) < besoin:
+                j["vie"] -= 5  # Pénalité réduite en désert
+                j["rapport_nuit"].append("❄️ FROID LÉGER -5 PV (Manque de toits)")
+        else:
+            # Montagne/Forêt subit de lourds dégâts météo
+            meteo = data.get("meteo", "Beau temps")
+
+            # Pénalité manque de toits (indépendante de la météo)
             if j.get("nb_toits", 0) < besoin:
-                j["vie"] -= 20; j["rapport_nuit"].append("❄️ FROID -20 PV")
-        elif "Pluie" in data["meteo"] and j.get("nb_toits", 0) < (besoin/2):
-            j["vie"] -= 10; j["rapport_nuit"].append("☔ PLUIE -10 PV")
+                j["vie"] -= 10
+                j["rapport_nuit"].append("🏚️ MANQUE DE TOITS -10 PV")
+
+            # Dégâts météorologiques (selon la météo et la saison)
+            if "Pluie" in meteo:
+                j["vie"] -= 5
+                j["rapport_nuit"].append("☔ PLUIE -5 PV")
+            elif "Orage" in meteo:
+                j["vie"] -= 15
+                j["rapport_nuit"].append("⛈️ ORAGE -15 PV")
+            elif nom_s == "Hiver":
+                # Tempête/Blizzard en hiver
+                j["vie"] -= 30
+                j["rapport_nuit"].append("❄️💨 BLIZZARD -30 PV")
+            elif "Vent" in meteo or "Tempête" in meteo:
+                j["vie"] -= 30
+                j["rapport_nuit"].append("🌪️ TEMPÊTE -30 PV")
+
+        # GESTION FEU DE CAMP (Hiver)
+        if nom_s == "Hiver" and not any(o.get("nom") == "Feu de camp" for o in j.get("objets_reels", [])):
+            j["vie"] -= 10
+            j["rapport_nuit"].append("🥶 HYPOTHERMIE : -10 PV (Pas de Feu de camp)")
+
+        # GESTION PÊCHE
+        if any(o.get("nom") == "Canne à pêche" for o in j.get("objets_reels", [])):
+            # 2 chances sur 3 de pêcher
+            if random.random() < 0.66:
+                manque = j.get("faim_max", 100) - j.get("faim", 0)
+                gain = random.randint(15, 50)
+                # On ne gagne pas plus que ce qu'on a faim, sauf si on a très faim
+                if manque < 50: gain = min(gain, manque + 10)
+
+                j["faim"] = min(j.get("faim_max", 100), j.get("faim", 0) + gain)
+                j["rapport_nuit"].append(f"🎣 Pêche fructueuse : +{gain} Faim")
+
+            # 1 chance sur 10 d'augmenter la stat max
+            if random.random() < 0.10:
+                if "faim_max" not in j:
+                    j["faim_max"] = 100
+                j["faim_max"] += 2
+                j["rapport_nuit"].append("✨ Le poisson était magique ! Faim Max +2")
 
         if j["vie"] <= 0:
             j["vie"] = 0; j["rapport_nuit"].append("🪦 MORT")
+
+def terminer_evenement_et_jour(data):
+    """Ferme l'événement actif et déclenche un nouveau jour"""
+    data["evenement_actif"] = None
+    executer_nuit(data)
+    data["phase"] = 1
+    data["jour"] += 1
+    save_data(data)
 
 def trigger_event(data, moment):
     # Vérifier s'il y a déjà un événement actif ou si un événement a déjà été déclenché aujourd'hui
@@ -912,724 +1058,1126 @@ if data.get("evenement_actif") and st.session_state.user_role == "MASTER":
 # VUE MAÎTRE DU JEU (DASHBOARD)
 # ==========================================
 if st.session_state.user_role == "MASTER":
-    st.sidebar.title("🎮 Panneau Maître")
+    placeholder = st.empty()
+    with placeholder.container():
+        st.sidebar.title("🎮 Panneau Maître")
 
-    # --- LOGIQUE AUTOMATIQUE DE PASSAGE DE PHASE ---
-    # On vérifie D'ABORD si tout le monde est prêt avant d'afficher quoi que ce soit
-    if data["phase"] > 0:
-        joueurs_prets = data.get("joueurs_prets", [])
-        total_joueurs = len(data["joueurs"])
-
-        # Si tout le monde est prêt ET qu'il y a des joueurs
-        if total_joueurs > 0 and len(joueurs_prets) >= total_joueurs:
-            st.success("✅ Tous les joueurs sont prêts ! Passage à la phase suivante...")
-            time.sleep(1)  # Petit délai visuel
-            next_phase(data)
-            st.rerun()
-
-    # Phase 0 : Inscription
-    if data["phase"] == 0:
-        st.header("📝 Inscription des Joueurs")
-        c1, c2, c3 = st.columns(3)
-        new_nom = c1.text_input("Nom")
-        new_metier = c2.selectbox("Métier", list(STATS_METIERS.keys()))
-        if c3.button("Inscrire"):
-            if new_nom and not any(j["nom"] == new_nom for j in data["joueurs"]):
-                new_j = {
-                    "nom": new_nom, "metier": new_metier, "ecus": 80, "kaplas": 5,
-                    "vie": 100, "vie_max": 100, "faim": 100, "faim_max": 100,
-                    "nb_terrains": 0, "nb_ouvriers": 0, "nb_toits": 0, "nb_tours": 0,
-                    "stock_ble": 0, "stock_vin": [],
-                    "stock_gibier": {"Petit":0, "Moyen":0, "Gros":0}, "stock_champignons": 0,
-                    "armee": {"Soldat":0, "Archer":0, "Chevalier":0},
-                    "def_physique": {"enceinte": False, "porte": False},
-                    "objets_reels": [], "conjoint": None, "enfants": 0, "bonus_banquet": 0,
-                    "action_du_jour": None, "rapport_nuit": [], "rapport_combat": [],
-                    "x": random.randint(10,90), "y": random.randint(10,90), "pont_construit": False
-                }
-                data["joueurs"].append(new_j)
-                save_data(data)
-                st.success(f"{new_nom} ajouté !")
-                st.rerun()
-            else:
-                st.error("Nom vide ou déjà pris.")
-
-        st.write("---")
-        st.write("**Joueurs prêts** :", [j["nom"] for j in data["joueurs"]])
-
-        if st.button("🚀 LANCER LA PARTIE", type="primary"):
-            data["phase"] = 1
-            save_data(data)
-            st.rerun()
-
-    # Jeu en cours
-    else:
-        # BARRE DE SAISON AVEC ANNÉE
-        nom_s, icon_s, _, color_s, j_saison, annee = get_saison_info(data["jour"])
-        st.markdown(f"""
-        <div style="background:{color_s};padding:15px;border-radius:10px;text-align:center;margin-bottom:20px;">
-            <h2 style="color:white;margin:0;">{icon_s} {nom_s} - Jour {j_saison}/10 | Année {annee}</h2>
-            <p style="color:white;margin:5px 0 0 0;font-size:18px;">Jour {data['jour']} | Phase {data['phase']}/4 | {data['meteo']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Barre de progression de l'année
-        progression_annee = (data['jour'] - 1) % DUREE_ANNEE / DUREE_ANNEE
-        st.progress(progression_annee, text=f"Progression de l'année : {int(progression_annee*100)}%")
-
-        # COURS AVEC ÉVOLUTION
-        st.subheader("📊 Cours du marché")
-        col1, col2, col3, col4 = st.columns(4)
-
-        evol_k = data['cours_kapla'] - data.get('cours_kapla_hier', data['cours_kapla'])
-        evol_b = data['cours_ble'] - data.get('cours_ble_hier', data['cours_ble'])
-        icon_k = "📈" if evol_k > 0 else "📉" if evol_k < 0 else "➡️"
-        icon_b = "📈" if evol_b > 0 else "📉" if evol_b < 0 else "➡️"
-        color_k = "green" if evol_k > 0 else "red" if evol_k < 0 else "gray"
-        color_b = "green" if evol_b > 0 else "red" if evol_b < 0 else "gray"
-
-        with col1:
-            # Affichage du cours avec flèche et couleur
-            pct_k = abs(evol_k/data.get('cours_kapla_hier',10)*100) if data.get('cours_kapla_hier',10) != 0 else 0
-            delta_text = f"{evol_k:+d}$ ({pct_k:.1f}%)"
-            st.markdown(f"**🧱 Kapla : {data['cours_kapla']}$**")
-            st.markdown(f"<p style='color:{color_k};font-size:14px;margin:0;'>{icon_k} {delta_text}</p>", unsafe_allow_html=True)
-
-        with col2:
-            # Affichage du cours avec flèche et couleur
-            pct_b = abs(evol_b/data.get('cours_ble_hier',5)*100) if data.get('cours_ble_hier',5) != 0 else 0
-            delta_text = f"{evol_b:+d}$ ({pct_b:.1f}%)"
-            st.markdown(f"**🌾 Blé : {data['cours_ble']}$**")
-            st.markdown(f"<p style='color:{color_b};font-size:14px;margin:0;'>{icon_b} {delta_text}</p>", unsafe_allow_html=True)
-
-        with col3:
-            cg = data["cours_gibier"]
-            st.write("**🍖 Gibier**")
-            # Affichage uniformisé et plus gros
-            st.markdown(f"<h5>🐇 {cg['Petit']}$ | 🐗 {cg['Moyen']}$ | 🐻 {cg['Gros']}$</h5>", unsafe_allow_html=True)
-
-        with col4:
-            st.metric("👥 Joueurs", len(data["joueurs"]))
+        # --- LOGIQUE AUTOMATIQUE DE PASSAGE DE PHASE AVEC TIMER ---
+        if data["phase"] > 0:
             nb_prets = len(data.get("joueurs_prets", []))
-            st.caption(f"Prêts: {nb_prets}/{len(data['joueurs'])}")
-
-        st.divider()
-
-        # CARTE COMPACTE
-        col_carte, col_controle = st.columns([1, 2])
-
-        with col_carte:
-            st.write("**🗺️ Carte du Royaume**")
-            if data["joueurs"]:
-                st.image(generer_carte(data["joueurs"]), width=350)
-
-        with col_controle:
-            st.write("**🎮 Contrôles**")
-
-            if st.button("➡️ PHASE SUIVANTE", type="primary", use_container_width=True):
-                next_phase(data)
-                st.rerun()
-
-            if st.button("🔄 Rafraîchir", use_container_width=True):
-                st.rerun()
-
+            total_joueurs = len(data["joueurs"])
+    
+            if nb_prets > 0:
+                # Cas 1 : Tout le monde est prêt -> GO direct
+                if nb_prets >= total_joueurs:
+                    st.success("🚀 TOUT LE MONDE EST PRÊT ! Passage immédiat...")
+                    data["timer_start"] = None  # Reset
+                    save_data(data)
+                    next_phase(data)
+                    st.rerun()
+    
+                # Cas 2 : Au moins 1 prêt -> Timer de pression (30s)
+                else:
+                    if "timer_start" not in data or data["timer_start"] is None:
+                        data["timer_start"] = time.time()  # On lance le chrono
+                        save_data(data)
+    
+                    elapsed = time.time() - data["timer_start"]
+                    remaining = 30 - elapsed
+    
+                    if remaining <= 0:
+                        st.warning("⏰ TEMPS ÉCOULÉ ! Passage forcé à la phase suivante.")
+                        data["timer_start"] = None
+                        save_data(data)
+                        next_phase(data)
+                        st.rerun()
+                    else:
+                        st.info(f"⏳ Un joueur est prêt. Fin du tour dans **{int(remaining)}s**...")
+                        st.progress(max(0.0, min(1.0, elapsed / 30)))
+    
+            else:
+                # Personne n'est prêt, on reset le timer au cas où
+                if data.get("timer_start") is not None:
+                    data["timer_start"] = None
+                    save_data(data)
+    
+        # Phase -1 : Fin de Partie
+        if data["phase"] == -1:
+            st.markdown("""
+            <div style="text-align:center; padding: 40px; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); border-radius: 15px; color: white;">
+                <h1>👑 CLASSEMENT FINAL 👑</h1>
+                <p>L'histoire du Royaume est écrite.</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
             st.divider()
-
-            # Tableau récap
-            if data["joueurs"]:
-                df_data = []
-                for j in data["joueurs"]:
-                    df_data.append({
-                        "Nom": j["nom"],
-                        "Métier": j["metier"],
-                        "💰": j["ecus"],
-                        "❤️": j["vie"],
-                        "🍗": j["faim"],
-                        "Action": j.get("action_du_jour", "-")
-                    })
-                st.dataframe(pd.DataFrame(df_data), use_container_width=True)
-
-        # --- GESTION AUDIO AVANCÉE ---
-        # 1. Check Récap Guerre (Transition 2->3)
-        if data.get("trigger_sound_guerre"):
-            autoplay_audio("sounds/attaque_reussie.mp3")  # Son de bataille
-            data["trigger_sound_guerre"] = False  # On le joue une seule fois
+    
+            scores = []
+            for j in data["joueurs"]:
+                helper = JoueurHelper(j)
+    
+                # 1. Militaire
+                force_att = helper.get_puissance()
+                force_def = helper.get_defense()
+                score_militaire = int((force_att + force_def) / 2)
+    
+                # 2. Economie
+                score_ecus = int(j["ecus"] / 4)
+    
+                # 3. Stock & Ressources
+                score_kaplas = j["kaplas"]
+    
+                nb_gibier = sum(j.get("stock_gibier", {}).values())
+                nb_vin = len(j.get("stock_vin", []))
+                score_ressources = j.get("stock_ble", 0) + nb_vin + j.get("stock_champignons", 0) + nb_gibier
+    
+                # 4. Gloire
+                nb_victoires = j.get("nb_guerres_gagnees", 0)
+                score_gloire = nb_victoires * 2
+    
+                # TOTAL
+                total = score_militaire + score_ecus + score_kaplas + score_ressources + score_gloire
+    
+                scores.append({
+                    "Nom": j["nom"],
+                    "Métier": j["metier"],
+                    "🏆 SCORE": total,
+                    "⚔️ Force": score_militaire,
+                    "💰 Richesse": score_ecus,
+                    "🧱 Kaplas": score_kaplas,
+                    "🌾 Stocks": score_ressources,
+                    "🎖️ Victoires": nb_victoires
+                })
+    
+            # Tri et Affichage
+            df_scores = pd.DataFrame(scores).sort_values(by="🏆 SCORE", ascending=False)
+            st.dataframe(df_scores, use_container_width=True, hide_index=True)
+    
+            gagnant = df_scores.iloc[0]
+            st.balloons()
+            st.success(f"🎉 LE VAINQUEUR EST : **{gagnant['Nom']}** avec {gagnant['🏆 SCORE']} points !")
+    
+            st.divider()
+            if st.button("🔄 Nouvelle Partie (Reset Complet)"):
+                if os.path.exists(DATA_FILE): os.remove(DATA_FILE)
+                st.session_state.user_role = None
+                st.rerun()
+    
+        # Phase 0 : Inscription
+        elif data["phase"] == 0:
+            st.header("📝 Inscription des Joueurs")
+    
+            st.info("🗺️ Choix Stratégique : Votre biome détermine votre style de jeu !")
+    
+            c1, c2, c3, c4 = st.columns(4)
+            new_nom = c1.text_input("Nom")
+            new_metier = c2.selectbox("Métier", list(STATS_METIERS.keys()))
+    
+            # Sélection du Biome
+            biome_choice = c3.selectbox("Biome", ["Montagne/Forêt", "Désert/Mer"])
+    
+            # Affichage des effets du biome
+            if biome_choice == "Montagne/Forêt":
+                c3.caption("🌲 Prod x3 | ⛈️ Météo violente")
+            else:
+                c3.caption("🏜️ Prod x1 | ☀️ Météo stable")
+    
+            if c4.button("Inscrire"):
+                if new_nom and not any(j["nom"] == new_nom for j in data["joueurs"]):
+                    # Déterminer position X selon le biome
+                    if biome_choice == "Montagne/Forêt":
+                        x_pos = random.randint(10, 40)  # Gauche de la carte
+                    else:
+                        x_pos = random.randint(60, 90)  # Droite de la carte
+    
+                    new_j = {
+                        "nom": new_nom, "metier": new_metier, "biome": biome_choice, "ecus": 80, "kaplas": 10,
+                        "vie": 100, "vie_max": 100, "faim": 100, "faim_max": 100,
+                        "nb_terrains": 0, "nb_ouvriers": 0, "nb_toits": 0, "nb_tours": 0,
+                        "stock_ble": 0, "stock_vin": [],
+                        "stock_gibier": {"Petit":0, "Moyen":0, "Gros":0}, "stock_champignons": 0,
+                        "armee": {"Soldat":0, "Archer":0, "Chevalier":0},
+                        "def_physique": {"enceinte": False, "porte": False},
+                        "objets_reels": [], "conjoint": None, "enfants": 0, "bonus_banquet": 0,
+                        "action_du_jour": None, "rapport_nuit": [], "rapport_combat": [],
+                        "x": x_pos, "y": random.randint(10,90), "pont_construit": False,
+                        "nb_actions_jour": 0, "last_attack_summary": None, "last_defense_summary": None,
+                        "equipement_joueur": {"Tete": None, "Torse": None, "Jambes": None, "MainG": None, "MainD": None, "Accessoire": None},
+                        "nb_guerres_gagnees": 0
+                    }
+                    data["joueurs"].append(new_j)
+                    save_data(data)
+                    st.success(f"{new_nom} ajouté en {biome_choice} !")
+                    st.rerun()
+                else:
+                    st.error("Nom vide ou déjà pris.")
+    
+            st.write("---")
+            st.write("**Joueurs prêts** :", [j["nom"] for j in data["joueurs"]])
+    
+            if st.button("🚀 LANCER LA PARTIE", type="primary"):
+                data["phase"] = 1
+                save_data(data)
+                st.rerun()
+    
+        # Jeu en cours
+        else:
+            # BARRE DE SAISON AVEC ANNÉE
+            nom_s, icon_s, _, color_s, j_saison, annee = get_saison_info(data["jour"])
+            st.markdown(f"""
+            <div style="background:{color_s};padding:15px;border-radius:10px;text-align:center;margin-bottom:20px;">
+                <h2 style="color:white;margin:0;">{icon_s} {nom_s} - Jour {j_saison}/10 | Année {annee}</h2>
+                <p style="color:white;margin:5px 0 0 0;font-size:18px;">Jour {data['jour']} | Phase {data['phase']}/4 | {data['meteo']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+            # Barre de progression de l'année
+            progression_annee = (data['jour'] - 1) % DUREE_ANNEE / DUREE_ANNEE
+            st.progress(progression_annee, text=f"Progression de l'année : {int(progression_annee*100)}%")
+    
+            # COURS AVEC ÉVOLUTION
+            st.subheader("📊 Cours du marché")
+            col1, col2, col3, col4 = st.columns(4)
+    
+            evol_k = data['cours_kapla'] - data.get('cours_kapla_hier', data['cours_kapla'])
+            evol_b = data['cours_ble'] - data.get('cours_ble_hier', data['cours_ble'])
+            icon_k = "📈" if evol_k > 0 else "📉" if evol_k < 0 else "➡️"
+            icon_b = "📈" if evol_b > 0 else "📉" if evol_b < 0 else "➡️"
+            color_k = "green" if evol_k > 0 else "red" if evol_k < 0 else "gray"
+            color_b = "green" if evol_b > 0 else "red" if evol_b < 0 else "gray"
+    
+            with col1:
+                # Affichage du cours avec flèche et couleur
+                pct_k = abs(evol_k/data.get('cours_kapla_hier',10)*100) if data.get('cours_kapla_hier',10) != 0 else 0
+                delta_text = f"{evol_k:+d}$ ({pct_k:.1f}%)"
+                st.markdown(f"**🧱 Kapla : {data['cours_kapla']}$**")
+                st.markdown(f"<p style='color:{color_k};font-size:14px;margin:0;'>{icon_k} {delta_text}</p>", unsafe_allow_html=True)
+    
+            with col2:
+                # Affichage du cours avec flèche et couleur
+                pct_b = abs(evol_b/data.get('cours_ble_hier',5)*100) if data.get('cours_ble_hier',5) != 0 else 0
+                delta_text = f"{evol_b:+d}$ ({pct_b:.1f}%)"
+                st.markdown(f"**🌾 Blé : {data['cours_ble']}$**")
+                st.markdown(f"<p style='color:{color_b};font-size:14px;margin:0;'>{icon_b} {delta_text}</p>", unsafe_allow_html=True)
+    
+            with col3:
+                cg = data["cours_gibier"]
+                st.write("**🍖 Gibier**")
+                # Affichage uniformisé et plus gros
+                st.markdown(f"<h5>🐇 {cg['Petit']}$ | 🐗 {cg['Moyen']}$ | 🐻 {cg['Gros']}$</h5>", unsafe_allow_html=True)
+    
+            with col4:
+                st.metric("👥 Joueurs", len(data["joueurs"]))
+                nb_prets = len(data.get("joueurs_prets", []))
+                st.caption(f"Prêts: {nb_prets}/{len(data['joueurs'])}")
+    
+            st.divider()
+    
+            # CARTE COMPACTE
+            col_carte, col_controle = st.columns([1, 2])
+    
+            with col_carte:
+                st.write("**🗺️ Carte du Royaume**")
+                if data["joueurs"]:
+                    st.image(generer_carte(data["joueurs"]), width=350)
+    
+            with col_controle:
+                st.write("**🎮 Contrôles**")
+    
+                if st.button("➡️ PHASE SUIVANTE", type="primary", use_container_width=True):
+                    next_phase(data)
+                    st.rerun()
+    
+                if st.button("🏁 FINIR LA PARTIE", use_container_width=True):
+                    data["phase"] = -1
+                    data["fin_partie"] = True
+                    save_data(data)
+                    st.rerun()
+    
+                if st.button("🔄 Rafraîchir", use_container_width=True):
+                    st.rerun()
+    
+                st.divider()
+    
+                # Tableau récap
+                if data["joueurs"]:
+                    df_data = []
+                    for j in data["joueurs"]:
+                        df_data.append({
+                            "Nom": j["nom"],
+                            "Métier": j["metier"],
+                            "💰": j["ecus"],
+                            "❤️": j["vie"],
+                            "🍗": j["faim"],
+                            "Action": j.get("action_du_jour", "-")
+                        })
+                    st.dataframe(pd.DataFrame(df_data), use_container_width=True)
+    
+            # --- GESTION AUDIO AVANCÉE ---
+            # 1. Check Récap Guerre (Transition 2->3)
+            if data.get("trigger_sound_guerre"):
+                autoplay_audio("sounds/attaque_reussie.mp3")  # Son de bataille
+                data["trigger_sound_guerre"] = False  # On le joue une seule fois
+                save_data(data)
+    
+            # 2. Blagues Aléatoires (Seulement si pas d'event actif)
+            if not data.get("evenement_actif"):
+                # 5% de chance à chaque refresh (toutes les 5s)
+                if random.random() < 0.05:
+                    blagues = ["joke_1.mp3", "joke_2.mp3", "joke_3.mp3", "joke_4.mp3", "joke_5.mp3"]
+                    son_blague = random.choice(blagues)
+                    autoplay_audio(f"sounds/{son_blague}")
+    
+            # --- AUTO-REFRESH LOOP ---
+            # Une fois l'interface affichée, on attend 5s puis on reload
+            # Cela permet au Master de voir l'écran pendant 5s, puis de vérifier si les joueurs sont prêts
+            time.sleep(5)
+            st.rerun()
+    
+        st.sidebar.divider()
+    
+        # Bouton Fin de Partie
+        if st.sidebar.button("🏁 FINIR LA PARTIE", type="primary"):
+            # Passage à un écran de fin
+            data["phase"] = -1  # Phase spéciale "Fin de partie"
             save_data(data)
-
-        # 2. Blagues Aléatoires (Seulement si pas d'event actif)
-        if not data.get("evenement_actif"):
-            # 5% de chance à chaque refresh (toutes les 5s)
-            if random.random() < 0.05:
-                blagues = ["joke_1.mp3", "joke_2.mp3", "joke_3.mp3", "joke_4.mp3", "joke_5.mp3"]
-                son_blague = random.choice(blagues)
-                autoplay_audio(f"sounds/{son_blague}")
-
-        # --- AUTO-REFRESH LOOP ---
-        # Une fois l'interface affichée, on attend 5s puis on reload
-        # Cela permet au Master de voir l'écran pendant 5s, puis de vérifier si les joueurs sont prêts
-        time.sleep(5)
-        st.rerun()
-
-    if st.sidebar.button("🔴 RESET TOTAL"):
-        if os.path.exists(DATA_FILE): os.remove(DATA_FILE)
-        st.session_state.user_role = None
-        st.rerun()
-
+            st.rerun()
+    
+        if st.sidebar.button("🔴 RESET TOTAL"):
+            if os.path.exists(DATA_FILE): os.remove(DATA_FILE)
+            st.session_state.user_role = None
+            st.rerun()
+    
 # ==========================================
 # VUE JOUEUR (CLIENT)
 # ==========================================
 elif st.session_state.user_role == "PLAYER":
-    # ============================================================
-    # 1. RÉCUPÉRATION JOUEUR
-    # ============================================================
-    me = next((j for j in data["joueurs"] if j["nom"] == st.session_state.user_name), None)
+    placeholder = st.empty()
+    with placeholder.container():
+        # ============================================================
+        # 1. RÉCUPÉRATION JOUEUR
+        # ============================================================
+        me = next((j for j in data["joueurs"] if j["nom"] == st.session_state.user_name), None)
 
-    if not me:
-        st.error("Erreur de compte. Retournez à l'accueil.")
-        if st.button("Déconnexion"):
-            st.session_state.user_role = None
+        if not me:
+            st.error("Erreur de compte. Retournez à l'accueil.")
+            if st.button("Déconnexion"):
+                st.session_state.user_role = None
+                st.rerun()
+            st.stop()
+    
+        # --- ALERTE ATTAQUE SUBIE ---
+        if me.get("rapport_combat"):
+            st.error("⚔️ VOUS AVEZ ÉTÉ ATTAQUÉ CETTE NUIT !")
+            for msg in me["rapport_combat"]:
+                st.write(msg)
+    
+            if st.button("❌ J'ai vu (Fermer l'alerte)", key="close_alert"):
+                me["rapport_combat"] = []
+                save_data(data)
+                st.rerun()
+            st.divider()
+    
+        # --- GESTION DE LA MORT ---
+        if me["vie"] <= 0:
+            st.error("💀 VOUS ÊTES MORT")
+            st.markdown(f"""
+            <div style="text-align:center; padding: 50px;">
+                <h1>✝️ R.I.P</h1>
+                <p>Votre aventure s'arrête ici.</p>
+                <p>Vous avez succombé à vos blessures ou à la famine.</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+            # Mode spectateur pour le mort (optionnel : il voit juste le log)
+            st.info("Attendez que le Maître du jeu relance une partie.")
+    
+            if st.button("Quitter la partie"):
+                st.session_state.user_role = None
+                st.rerun()
+    
+            time.sleep(5)  # Refresh lent pour voir si le MJ reset la partie
             st.rerun()
-        st.stop()
-
-    # --- ALERTE ATTAQUE SUBIE ---
-    if me.get("rapport_combat"):
-        st.error("⚔️ VOUS AVEZ ÉTÉ ATTAQUÉ CETTE NUIT !")
-        for msg in me["rapport_combat"]:
-            st.write(msg)
-
-        if st.button("❌ J'ai vu (Fermer l'alerte)", key="close_alert"):
-            me["rapport_combat"] = []
-            save_data(data)
+    
+        # --- DETECTION CHANGEMENT DE PHASE / EVENT ---
+        if "last_phase_seen" not in st.session_state:
+            st.session_state.last_phase_seen = data["phase"]
+    
+        # Si la phase change, on reset l'auto-refresh pour éviter les boucles
+        if st.session_state.last_phase_seen != data["phase"]:
+            st.session_state.last_phase_seen = data["phase"]
+            st.session_state.auto_refresh = False
             st.rerun()
-        st.divider()
-
-    # --- GESTION DE LA MORT ---
-    if me["vie"] <= 0:
-        st.error("💀 VOUS ÊTES MORT")
+    
+        # Si un event arrive, on refresh pour l'afficher
+        current_event = data.get("evenement_actif")
+        if "last_event_seen" not in st.session_state:
+            st.session_state.last_event_seen = current_event
+    
+        if st.session_state.last_event_seen != current_event:
+            st.session_state.last_event_seen = current_event
+            st.rerun()
+    
+        helper = JoueurHelper(me)
+    
+        # ============================================================
+        # 2. AFFICHAGE DU HEADER & HUD
+        # ============================================================
+        # --- HEADER JOUEUR ---
+        nom_saison, icon_saison, _, color_saison, j_saison, annee = get_saison_info(data["jour"])
         st.markdown(f"""
-        <div style="text-align:center; padding: 50px;">
-            <h1>✝️ R.I.P</h1>
-            <p>Votre aventure s'arrête ici.</p>
-            <p>Vous avez succombé à vos blessures ou à la famine.</p>
+        <div style="background:{color_saison};padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;">
+            <h3 style="color:white;margin:0;">{icon_saison} {nom_saison} - Jour {j_saison}/10 | Année {annee}</h3>
         </div>
         """, unsafe_allow_html=True)
-
-        # Mode spectateur pour le mort (optionnel : il voit juste le log)
-        st.info("Attendez que le Maître du jeu relance une partie.")
-
-        if st.button("Quitter la partie"):
-            st.session_state.user_role = None
-            st.rerun()
-
-        time.sleep(5)  # Refresh lent pour voir si le MJ reset la partie
-        st.rerun()
-
-    # --- DETECTION CHANGEMENT DE PHASE / EVENT ---
-    if "last_phase_seen" not in st.session_state:
-        st.session_state.last_phase_seen = data["phase"]
-
-    # Si la phase change, on reset l'auto-refresh pour éviter les boucles
-    if st.session_state.last_phase_seen != data["phase"]:
-        st.session_state.last_phase_seen = data["phase"]
-        st.session_state.auto_refresh = False
-        st.rerun()
-
-    # Si un event arrive, on refresh pour l'afficher
-    current_event = data.get("evenement_actif")
-    if "last_event_seen" not in st.session_state:
-        st.session_state.last_event_seen = current_event
-
-    if st.session_state.last_event_seen != current_event:
-        st.session_state.last_event_seen = current_event
-        st.rerun()
-
-    helper = JoueurHelper(me)
-
-    # ============================================================
-    # 2. AFFICHAGE DU HEADER & HUD
-    # ============================================================
-    # --- HEADER JOUEUR ---
-    nom_saison, icon_saison, _, color_saison, j_saison, annee = get_saison_info(data["jour"])
-    st.markdown(f"""
-    <div style="background:{color_saison};padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;">
-        <h3 style="color:white;margin:0;">{icon_saison} {nom_saison} - Jour {j_saison}/10 | Année {annee}</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Barre de progression de l'année
-    progression_annee = (data['jour'] - 1) % DUREE_ANNEE / DUREE_ANNEE
-    st.progress(progression_annee, text=f"Progression de l'année : {int(progression_annee*100)}%")
-
-    st.sidebar.title(f"👤 {me['nom']}")
-    st.sidebar.write(f"Métier : **{me['metier']}** {STATS_METIERS[me['metier']]['icon']}")
-
-    # --- HUD STICKY : Métriques fixes en haut ---
-    st.markdown("""
-    <div class="hud-sticky">
-        <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
-    """, unsafe_allow_html=True)
     
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("Vie ❤️", f"{me['vie']}/{me['vie_max']}")
-        draw_bar(me['vie'], me['vie_max'], "#f44336")
-    with c2:
-        st.metric("Faim 🍗", f"{me['faim']}/{me['faim_max']}")
-        draw_bar(me['faim'], me['faim_max'], "#FF9800")
-    with c3:
-        st.metric("Or 💰", me['ecus'])
-    with c4:
-        st.metric("Kaplas 🧱", me['kaplas'])
+        # Barre de progression de l'année
+        progression_annee = (data['jour'] - 1) % DUREE_ANNEE / DUREE_ANNEE
+        st.progress(progression_annee, text=f"Progression de l'année : {int(progression_annee*100)}%")
     
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
-    # Inventaire
-    inv = []
-    if me['stock_ble'] > 0: inv.append(f"🌾{me['stock_ble']}")
-    if me['stock_vin']: inv.append(f"🍷{len(me['stock_vin'])}")
-    gibier = me.get("stock_gibier", {})
-    if gibier.get("Petit"): inv.append(f"🐇{gibier['Petit']}")
-    if gibier.get("Moyen"): inv.append(f"🐗{gibier['Moyen']}")
-    if gibier.get("Gros"): inv.append(f"🐻{gibier['Gros']}")
-    if me.get("stock_champignons"): inv.append(f"🍄{me['stock_champignons']}")
-
-    for k,v in me.get("armee", {}).items():
-        if v > 0: inv.append(f"{STATS_COMBAT[k]['icon']}{v}")
-
-    for o in me.get("objets_reels", []):
-        nom_o = o.get("nom", "")
-        if nom_o in CATALOGUE_OBJETS:
-            inv.append(CATALOGUE_OBJETS[nom_o].get("icon", "🔧"))
-
-    st.info("🎒 **Inventaire**: " + " | ".join(inv) if inv else "🎒 **Inventaire**: Vide")
-
-    # ============================================================
-    # 3. AIGUILLAGE PRINCIPAL : ÉVÉNEMENT vs JEU NORMAL
-    # ============================================================
-    if data.get("evenement_actif"):
-        # === MODE ÉVÉNEMENT ===
-        evt = data["evenement_actif"]
-        nom_evt = evt["nom"]
-        info = evt["data"]
-
-        # Si la cible est "Tous" ou si c'est la Chasse, tout le monde est acteur
-        if nom_evt in ["Le Monument", "Saison de la Chasse"]:
-            est_acteur = True
-        else:
-            est_acteur = (st.session_state.user_name == info.get("cible")) or (st.session_state.user_name == info.get("maitre"))
-
-        st.divider()
-
-        if est_acteur:
-            # ========================================================
-            # MODE ACTEUR : Le joueur doit agir
-            # ========================================================
-            st.subheader(f"📢 ACTION REQUISE : {nom_evt}")
-
-            # Logique des boutons selon l'événement
-            if nom_evt == "Vol d'Ecu":
-                st.error(f"🚨 Des voleurs vous ciblent ! Perte potentielle : **{info['perte']}$**")
-                if helper.a_objet("Coffre-fort"):
-                    st.success("🔒 Vous avez un coffre-fort ! Le vol est annulé.")
-                    if st.button("✅ ÉVÉNEMENT TERMINÉ"):
-                        data["evenement_actif"] = None
-                        save_data(data)
-                        st.rerun()
+        st.sidebar.title(f"👤 {me['nom']}")
+        st.sidebar.write(f"Métier : **{me['metier']}** {STATS_METIERS[me['metier']]['icon']}")
+    
+        # Affichage Info Production
+        prod_coeff = helper.get_prod_coeff(data["jour"])
+        st.sidebar.divider()
+        st.sidebar.metric("🚀 Puissance Prod", f"x{prod_coeff:.1f}")
+        with st.sidebar.expander("ℹ️ Détail Bonus Métier"):
+            st.write("""
+            **🌾 Fermier :** +20% / Terrain, +150% / Ouvrier
+            **🪓 Bûcheron :** +80% / Terrain, +50% / Ouvrier
+            **🍇 Vigneron :** +100% partout (Le vin prend de la valeur)
+            **🛒 Charrette :** +300% (Fixe)
+            """)
+    
+        # --- HUD STICKY : Métriques fixes en haut ---
+        st.markdown("""
+        <div class="hud-sticky">
+            <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+        """, unsafe_allow_html=True)
+        
+        c1, c2, c3, c4, c5 = st.columns(5)
+        with c1:
+            st.metric("Vie ❤️", f"{me['vie']}/{me['vie_max']}")
+            draw_bar(me['vie'], me['vie_max'], "#f44336")
+        with c2:
+            st.metric("Faim 🍗", f"{me['faim']}/{me['faim_max']}")
+            draw_bar(me['faim'], me['faim_max'], "#FF9800")
+        with c3:
+            st.metric("Or 💰", me['ecus'])
+        with c4:
+            st.metric("Kaplas 🧱", me['kaplas'])
+        with c5:
+            st.metric("Productivité 🚀", f"x{prod_coeff:.1f}",
+                      help="🌾 Fermier: +20%/Terrain, +150%/Ouvrier\n🪓 Bûcheron: +80%/Terrain, +50%/Ouvrier\n🍇 Vigneron: +100%/Terrain, +100%/Ouvrier\n🛒 Charrette: +300%")
+        
+        st.markdown("</div></div>", unsafe_allow_html=True)
+    
+        # Inventaire
+        inv = []
+        if me['stock_ble'] > 0: inv.append(f"🌾{me['stock_ble']}")
+        if me['stock_vin']: inv.append(f"🍷{len(me['stock_vin'])}")
+        gibier = me.get("stock_gibier", {})
+        if gibier.get("Petit"): inv.append(f"🐇{gibier['Petit']}")
+        if gibier.get("Moyen"): inv.append(f"🐗{gibier['Moyen']}")
+        if gibier.get("Gros"): inv.append(f"🐻{gibier['Gros']}")
+        if me.get("stock_champignons"): inv.append(f"🍄{me['stock_champignons']}")
+    
+        for k,v in me.get("armee", {}).items():
+            if v > 0: inv.append(f"{STATS_COMBAT[k]['icon']}{v}")
+    
+        for o in me.get("objets_reels", []):
+            nom_o = o.get("nom", "")
+            if nom_o in CATALOGUE_OBJETS:
+                inv.append(CATALOGUE_OBJETS[nom_o].get("icon", "🔧"))
+    
+        st.info("🎒 **Inventaire**: " + " | ".join(inv) if inv else "🎒 **Inventaire**: Vide")
+    
+        # ============================================================
+        # ÉQUIPEMENT DU CHEF (Affichage visuel)
+        # ============================================================
+        equipement_chef = me.get("equipement_joueur", {})
+        if equipement_chef and any(equipement_chef.values()):
+            equip_display = []
+            slots_order = ["Tete", "Torse", "Jambes", "MainG", "MainD", "Accessoire"]
+            slot_icons = {
+                "Tete": "🪖",
+                "Torse": "🛡️",
+                "Jambes": "👖",
+                "MainG": "🔰",
+                "MainD": "⚔️",
+                "Accessoire": "💍"
+            }
+    
+            for slot in slots_order:
+                item = equipement_chef.get(slot)
+                if item:
+                    nom = item.get("nom", "Inconnu")
+                    bonus_att = item.get("bonus_att", 0)
+                    bonus_def = item.get("bonus_def", 0)
+                    icon = slot_icons.get(slot, "📦")
+    
+                    if bonus_att > 0:
+                        equip_display.append(f"{icon} {nom} (+{bonus_att}⚔️)")
+                    elif bonus_def > 0:
+                        equip_display.append(f"{icon} {nom} (+{bonus_def}🛡️)")
+                    else:
+                        equip_display.append(f"{icon} {nom}")
+    
+            if equip_display:
+                st.success("👑 **Équipement du Chef**: " + " | ".join(equip_display))
+    
+        # ============================================================
+        # TABLEAU DE BORD MILITAIRE (Persistant dans toutes les phases)
+        # ============================================================
+        with st.expander("⚔️ Tableau de Bord Militaire", expanded=False):
+            col_att, col_def = st.columns(2)
+    
+            with col_att:
+                st.subheader("⚔️ Force d'Attaque")
+                puissance_att = helper.get_puissance()
+    
+                # DISTRIBUTION INTELLIGENTE DES ARMES (pour affichage)
+                armes_dispo = []
+                armes_obj_names = []
+                for obj in me.get("objets_reels", []):
+                    nom = obj.get("nom")
+                    if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
+                        bonus = CATALOGUE_OBJETS[nom].get("bonus_att", 0)
+                        armes_dispo.append(bonus)
+                        armes_obj_names.append((nom, bonus))
+                armes_dispo.sort(reverse=True)
+                armes_obj_names.sort(key=lambda x: x[1], reverse=True)
+    
+                armee = me.get("armee", {})
+                nb_troupes = armee.get("Soldat", 0) + armee.get("Chevalier", 0)
+                armes_equipees = min(len(armes_dispo), nb_troupes)
+                bonus_armes = sum(armes_dispo[:armes_equipees])
+    
+                # Bonus équipement chef
+                bonus_chef = 0
+                for slot, item in me.get("equipement_joueur", {}).items():
+                    if item and "bonus_att" in item:
+                        bonus_chef += item["bonus_att"]
+    
+                total_att = puissance_att + bonus_armes + bonus_chef
+                st.metric("Force Totale", total_att)
+                st.caption(f"Armée: {puissance_att} | Arsenal: {armes_equipees}/{len(armes_dispo)} (+{bonus_armes}) | Chef: +{bonus_chef}")
+    
+                # Liste des soldats équipés/non équipés
+                st.divider()
+                st.write("**🗡️ Soldats d'Attaque**")
+                nb_soldats = armee.get("Soldat", 0)
+                nb_chevaliers = armee.get("Chevalier", 0)
+    
+                if nb_soldats + nb_chevaliers > 0:
+                    equipes = []
+                    non_equipes = []
+    
+                    # Soldats équipés
+                    for i in range(min(armes_equipees, nb_soldats)):
+                        if i < len(armes_obj_names):
+                            equipes.append(f"Soldat #{i+1} ({armes_obj_names[i][0]} +{armes_obj_names[i][1]})")
+    
+                    # Chevaliers équipés
+                    debut_chevalier = max(0, armes_equipees - nb_soldats)
+                    for i in range(min(nb_chevaliers, armes_equipees - nb_soldats)):
+                        idx = nb_soldats + i
+                        if idx < len(armes_obj_names):
+                            equipes.append(f"Chevalier #{i+1} ({armes_obj_names[idx][0]} +{armes_obj_names[idx][1]})")
+    
+                    # Soldats/Chevaliers non équipés
+                    soldats_non_equipes = max(0, nb_soldats - armes_equipees)
+                    for i in range(soldats_non_equipes):
+                        non_equipes.append(f"Soldat #{armes_equipees + i + 1} (Sans arme)")
+    
+                    chevaliers_non_equipes = max(0, nb_chevaliers - max(0, armes_equipees - nb_soldats))
+                    for i in range(chevaliers_non_equipes):
+                        non_equipes.append(f"Chevalier #{debut_chevalier + i + 1} (Sans arme)")
+    
+                    if equipes:
+                        st.success(f"✅ Équipés ({len(equipes)})")
+                        for e in equipes:
+                            st.caption(e)
+    
+                    if non_equipes:
+                        st.warning(f"⚠️ Non Équipés ({len(non_equipes)})")
+                        for ne in non_equipes:
+                            st.caption(ne)
                 else:
-                    st.error(f"💸 Vous n'avez pas de coffre-fort. Vous perdez **{info['perte']}$**")
-                    if st.button("✅ CONFIRMER LA PERTE"):
-                        me["ecus"] = max(0, me["ecus"] - info["perte"])
-                        data["evenement_actif"] = None
-                        save_data(data)
-                        st.rerun()
-
-            elif nom_evt == "Vol de Ressource":
-                st.error(f"🚨 Des pillards tentent de voler vos ressources ! Menace : **-{info['perte']}** unités")
-                st.caption(f"Vos stocks : Blé={me.get('stock_ble',0)} | Kaplas={me.get('kaplas',0)}")
-
-                # Vérification : Le joueur a-t-il protégé ses cultures physiquement ?
-                culture_protegee = me.get("def_physique", {}).get("protection_cultures", False)
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    # Option 1 : Payer (Pas de protection)
-                    if st.button("💸 ILS PILLENT MES CHAMPS"):
-                        perte = info["perte"]
-                        # Priorité sur le blé
-                        if me.get("stock_ble", 0) >= perte:
-                            me["stock_ble"] -= perte
-                            st.error(f"Ils ont piétiné vos champs : -{perte} Blé.")
-                        elif me.get("kaplas", 0) >= perte:
-                            me["kaplas"] -= perte
-                            st.error(f"Ils ont volé votre bois : -{perte} Kaplas.")
+                    st.info("Aucune troupe d'attaque")
+    
+                # Dernière attaque effectuée
+                last_att = me.get("last_attack_summary")
+                if last_att:
+                    st.divider()
+                    st.write("**📜 Dernière Attaque**")
+                    st.write(f"🎯 Cible: {last_att.get('cible', 'N/A')}")
+                    st.write(f"⚔️ Force: {last_att.get('force_att', 0)}")
+                    st.write(f"🛡️ Défense: {last_att.get('force_def', 0)}")
+                    result = "🎉 Victoire" if last_att.get('victoire') else "💀 Défaite"
+                    st.write(f"Résultat: {result}")
+    
+            with col_def:
+                st.subheader("🛡️ Force de Défense")
+                defense_totale = helper.get_defense()
+                st.metric("Défense Totale", defense_totale)
+    
+                # Détail de la défense avec nouvelles stats
+                armee_def = me.get("armee", {})
+                def_armee = armee_def.get("Soldat", 0) * STATS_COMBAT["Soldat"]["base"] + \
+                            armee_def.get("Archer", 0) * STATS_COMBAT["Archer"]["base"] + \
+                            armee_def.get("Chevalier", 0) * STATS_COMBAT["Chevalier"]["base"]
+    
+                # DISTRIBUTION INTELLIGENTE DES ARMURES (pour affichage)
+                armures_dispo = []
+                armures_obj_names = []
+                for obj in me.get("objets_reels", []):
+                    nom = obj.get("nom")
+                    if nom in CATALOGUE_OBJETS:
+                        type_obj = CATALOGUE_OBJETS[nom].get("type")
+                        if type_obj in ["Armure", "Bouclier"]:
+                            bonus = CATALOGUE_OBJETS[nom].get("bonus_def", 0)
+                            armures_dispo.append(bonus)
+                            armures_obj_names.append((nom, bonus))
+                armures_dispo.sort(reverse=True)
+                armures_obj_names.sort(key=lambda x: x[1], reverse=True)
+    
+                nb_troupes_def = armee_def.get("Soldat", 0) + armee_def.get("Archer", 0) + armee_def.get("Chevalier", 0)
+                armures_equipees = min(len(armures_dispo), nb_troupes_def)
+                bonus_armor = sum(armures_dispo[:armures_equipees])
+    
+                # Bonus équipement chef
+                bonus_chef_def = 0
+                for slot, item in me.get("equipement_joueur", {}).items():
+                    if item and "bonus_def" in item:
+                        bonus_chef_def += item["bonus_def"]
+    
+                st.caption(f"Armée: {def_armee} | Arsenal: {armures_equipees}/{len(armures_dispo)} (+{bonus_armor}) | Chef: +{bonus_chef_def}")
+    
+                # Liste des soldats équipés/non équipés (défense)
+                st.divider()
+                st.write("**🛡️ Troupes Défensives**")
+    
+                if nb_troupes_def > 0:
+                    equipes_def = []
+                    non_equipes_def = []
+    
+                    # Distribution : Soldats -> Archers -> Chevaliers
+                    nb_s = armee_def.get("Soldat", 0)
+                    nb_a = armee_def.get("Archer", 0)
+                    nb_c = armee_def.get("Chevalier", 0)
+    
+                    idx = 0
+                    # Soldats
+                    for i in range(nb_s):
+                        if idx < armures_equipees and idx < len(armures_obj_names):
+                            equipes_def.append(f"Soldat #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
+                            idx += 1
                         else:
-                            st.info("Les pillards n'ont rien trouvé d'intéressant.")
-
-                        data["evenement_actif"] = None
-                        save_data(data)
-                        st.rerun()
-
-                with col2:
-                    # Option 2 : Se défendre (Si condition physique remplie)
-                    if culture_protegee:
-                        st.success("🛡️ CHAMPS SÉCURISÉS (Mur de 1 Kapla)")
-                        if st.button("🛡️ REPOUSSER LES PILLARDS", type="primary"):
-                            st.balloons()
-                            st.success("Votre mur d'enceinte a stoppé les voleurs ! Ils fuient !")
-                            time.sleep(2)
+                            non_equipes_def.append(f"Soldat #{i+1} (Sans protection)")
+    
+                    # Archers
+                    for i in range(nb_a):
+                        if idx < armures_equipees and idx < len(armures_obj_names):
+                            equipes_def.append(f"Archer #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
+                            idx += 1
+                        else:
+                            non_equipes_def.append(f"Archer #{i+1} (Sans protection)")
+    
+                    # Chevaliers
+                    for i in range(nb_c):
+                        if idx < armures_equipees and idx < len(armures_obj_names):
+                            equipes_def.append(f"Chevalier #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
+                            idx += 1
+                        else:
+                            non_equipes_def.append(f"Chevalier #{i+1} (Sans protection)")
+    
+                    if equipes_def:
+                        st.success(f"✅ Équipés ({len(equipes_def)})")
+                        for e in equipes_def:
+                            st.caption(e)
+    
+                    if non_equipes_def:
+                        st.warning(f"⚠️ Non Équipés ({len(non_equipes_def)})")
+                        for ne in non_equipes_def:
+                            st.caption(ne)
+                else:
+                    st.info("Aucune troupe défensive")
+    
+                # Dernière défense
+                last_def = me.get("last_defense_summary")
+                if last_def:
+                    st.divider()
+                    st.write("**📜 Dernière Défense**")
+                    st.write(f"⚔️ Attaquant: {last_def.get('attaquant', 'N/A')}")
+                    st.write(f"⚔️ Force att: {last_def.get('force_att', 0)}")
+                    st.write(f"🛡️ Ma défense: {last_def.get('force_def', 0)}")
+                    result = "🛡️ Repoussé" if last_def.get('defenseur_victoire') else "💀 Pillé"
+                    st.write(f"Résultat: {result}")
+    
+            # SECTION INVENTAIRE & REVENTE
+            st.divider()
+            st.subheader("📦 Inventaire & Revente")
+    
+            objets_reels = me.get("objets_reels", [])
+            if objets_reels:
+                # Compter les objets par nom
+                inventaire = {}
+                for obj in objets_reels:
+                    nom = obj.get("nom")
+                    if nom:
+                        if nom not in inventaire:
+                            inventaire[nom] = 0
+                        inventaire[nom] += 1
+    
+                # Afficher l'inventaire avec boutons de revente
+                cols = st.columns(3)
+                col_idx = 0
+    
+                for nom_obj, quantite in sorted(inventaire.items()):
+                    if nom_obj in CATALOGUE_OBJETS:
+                        info = CATALOGUE_OBJETS[nom_obj]
+                        prix_achat = info.get("prix", 0)
+                        prix_revente = prix_achat // 2
+                        icon = info.get("icon", "📦")
+    
+                        with cols[col_idx % 3]:
+                            st.write(f"{icon} **{nom_obj}** x{quantite}")
+                            st.caption(f"Revente: {prix_revente}$ (50%)")
+    
+                            if st.button(f"Vendre 1x", key=f"vendre_{nom_obj}"):
+                                # Trouver et retirer 1 exemplaire
+                                for i, obj in enumerate(objets_reels):
+                                    if obj.get("nom") == nom_obj:
+                                        objets_reels.pop(i)
+                                        me["ecus"] += prix_revente
+                                        st.toast(f"✅ {nom_obj} vendu pour {prix_revente}$", icon="💰")
+                                        save_data(data)
+                                        st.rerun()
+                                        break
+    
+                        col_idx += 1
+            else:
+                st.info("Votre inventaire est vide")
+    
+        # ============================================================
+        # 3. AIGUILLAGE PRINCIPAL : ÉVÉNEMENT vs JEU NORMAL
+        # ============================================================
+        if data.get("evenement_actif"):
+            # === MODE ÉVÉNEMENT ===
+            evt = data["evenement_actif"]
+            nom_evt = evt["nom"]
+            info = evt["data"]
+    
+            # Si la cible est "Tous" ou si c'est la Chasse, tout le monde est acteur
+            if nom_evt in ["Le Monument", "Saison de la Chasse"]:
+                est_acteur = True
+            else:
+                est_acteur = (st.session_state.user_name == info.get("cible")) or (st.session_state.user_name == info.get("maitre"))
+    
+            st.divider()
+    
+            if est_acteur:
+                # ========================================================
+                # MODE ACTEUR : Le joueur doit agir
+                # ========================================================
+                st.subheader(f"📢 ACTION REQUISE : {nom_evt}")
+    
+                # Logique des boutons selon l'événement
+                if nom_evt == "Vol d'Ecu":
+                    st.error(f"🚨 Des voleurs vous ciblent ! Perte potentielle : **{info['perte']}$**")
+                    if helper.a_objet("Coffre-fort"):
+                        st.success("🔒 Vous avez un coffre-fort ! Le vol est annulé.")
+                        if st.button("✅ ÉVÉNEMENT TERMINÉ"):
                             data["evenement_actif"] = None
                             save_data(data)
                             st.rerun()
                     else:
-                        st.warning("⚠️ Vos cultures sont à découvert !")
-                        st.caption("Pour vous défendre : Construisez un mur d'au moins 1 Kapla de haut tout autour de vos champs (Phase 4).")
-
-            elif nom_evt == "Saison de la Chasse":
-                # --- VUE MAÎTRE DE CHASSE (Celui qui a organisé) ---
-                if st.session_state.user_name == info.get("maitre"):
-                    st.success("👑 VOUS ÊTES LE MAÎTRE DE CHASSE !")
-                    st.write(f"**Instructions** : {info.get('instruction')}")
-                    st.info("🎯 Cachez les animaux. Les joueurs valident leur butin sur leur écran.")
-                    
-                    # Afficher qui a déjà ramené du gibier
-                    chasseurs = info.get("chasseurs_valides", [])
-                    if chasseurs:
-                        st.write("📊 **Chasseurs revenus :** " + ", ".join(chasseurs))
-                    else:
-                        st.caption("Aucun chasseur n'est encore revenu...")
-
-                    st.divider()
-                    st.write("Une fois que tout le monde a fini :")
-                    if st.button("🏁 TERMINER L'ÉVÉNEMENT (Fin de la Chasse)"):
-                        me["ecus"] += 100 # Prime pour l'organisateur
-                        data["evenement_actif"] = None
-                        save_data(data)
-                        st.rerun()
-
-                # --- VUE CHASSEURS (Tous les autres joueurs) ---
-                else:
-                    # Vérifier si le joueur a déjà validé son butin
-                    if st.session_state.user_name in info.get("chasseurs_valides", []):
-                        st.success("✅ BUTIN VALIDÉ !")
-                        st.info("🎒 Vos prises ont été ajoutées à votre inventaire.")
-                        st.caption("En attente de la fin de la chasse par le Maître...")
-                        time.sleep(2)
-                        st.rerun()
-                    else:
-                        st.subheader("🏹 C'est la Chasse ! Rapportez votre butin.")
-                        st.write(f"Cherchez les animaux cachés par **{info.get('maitre')}** !")
-
-                        c1, c2, c3 = st.columns(3)
-                        nb_petit = c1.number_input("🐇 Petit", 0, 10, 0)
-                        nb_moyen = c2.number_input("🐗 Moyen", 0, 5, 0)
-                        nb_gros = c3.number_input("🐻 Gros", 0, 2, 0)
-
-                        # Gestion du Couteau à Champignons
-                        nb_champi = 0
-                        if helper.a_objet("Couteau Champignon"):
-                            st.success("🍄 Couteau actif !")
-                            nb_champi = st.number_input("🍄 Champignons", 0, 20, 0)
-
-                        st.divider()
-                        
-                        if st.button("✅ VALIDER MON BUTIN", type="primary"):
-                            # Mise à jour inventaire
-                            if "stock_gibier" not in me: me["stock_gibier"] = {"Petit":0, "Moyen":0, "Gros":0}
-                            me["stock_gibier"]["Petit"] += nb_petit
-                            me["stock_gibier"]["Moyen"] += nb_moyen
-                            me["stock_gibier"]["Gros"] += nb_gros
-                            if nb_champi > 0:
-                                me["stock_champignons"] = me.get("stock_champignons", 0) + nb_champi
-
-                            # Enregistrement
-                            if "chasseurs_valides" not in info: info["chasseurs_valides"] = []
-                            info["chasseurs_valides"].append(st.session_state.user_name)
-                            
+                        st.error(f"💸 Vous n'avez pas de coffre-fort. Vous perdez **{info['perte']}$**")
+                        if st.button("✅ CONFIRMER LA PERTE"):
+                            me["ecus"] = max(0, me["ecus"] - info["perte"])
+                            data["evenement_actif"] = None
                             save_data(data)
-                            st.balloons()
                             st.rerun()
-
-            elif nom_evt == "Passage du Roi":
-                st.success(f"👑 LE ROI VOUS REND VISITE !")
-                st.write(f"**Condition** : {info.get('condition')}")
-                st.write(f"**Récompense potentielle** : {info.get('gain')}$")
-
-                col1, col2 = st.columns(2)
-                if col1.button("✅ J'AI LES CONDITIONS"):
-                    me["ecus"] += info.get("gain", 0)
-                    st.success(f"🎉 Vous recevez {info.get('gain')}$ du Roi !")
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-                if col2.button("❌ JE N'AI PAS LES CONDITIONS"):
-                    st.info("Le Roi repart sans vous donner d'or.")
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-
-            elif nom_evt == "Le Monument":
-                st.info("🏛️ DÉFI COLLECTIF : LES DIEUX RÉCLAMENT UNE OFFRANDE !")
-                st.warning(f"🏆 {info.get('instruction')}")
-                st.write("Le **PREMIER** joueur à valider remporte la bénédiction !")
-
-                # Bouton de course : Le premier qui clique gagne
-                if st.button("🏁 J'AI TERMINÉ LA TOUR EN PREMIER !", type="primary", use_container_width=True):
-                    # On vérifie si l'event est toujours actif (anti-conflit)
-                    if data.get("evenement_actif"):
-                        me["stock_ble"] = me.get("stock_ble", 0) * 2
-                        me["kaplas"] = me.get("kaplas", 0) * 2
-                        gibier = me.get("stock_gibier", {})
-                        for k in gibier:
-                            gibier[k] *= 2
+    
+                elif nom_evt == "Vol de Ressource":
+                    st.error(f"🚨 Des pillards tentent de voler vos ressources ! Menace : **-{info['perte']}** unités")
+                    st.caption(f"Vos stocks : Blé={me.get('stock_ble',0)} | Kaplas={me.get('kaplas',0)}")
+    
+                    # Vérification : Le joueur a-t-il protégé ses cultures physiquement ?
+                    culture_protegee = me.get("def_physique", {}).get("protection_cultures", False)
+    
+                    col1, col2 = st.columns(2)
+    
+                    with col1:
+                        # Option 1 : Payer (Pas de protection)
+                        if st.button("💸 ILS PILLENT MES CHAMPS"):
+                            perte = info["perte"]
+                            # Priorité sur le blé
+                            if me.get("stock_ble", 0) >= perte:
+                                me["stock_ble"] -= perte
+                                st.error(f"Ils ont piétiné vos champs : -{perte} Blé.")
+                            elif me.get("kaplas", 0) >= perte:
+                                me["kaplas"] -= perte
+                                st.error(f"Ils ont volé votre bois : -{perte} Kaplas.")
+                            else:
+                                st.info("Les pillards n'ont rien trouvé d'intéressant.")
+    
+                            data["evenement_actif"] = None
+                            save_data(data)
+                            st.rerun()
+    
+                    with col2:
+                        # Option 2 : Se défendre (Si condition physique remplie)
+                        if culture_protegee:
+                            st.success("🛡️ CHAMPS SÉCURISÉS (Mur de 1 Kapla)")
+                            if st.button("🛡️ REPOUSSER LES PILLARDS", type="primary"):
+                                st.balloons()
+                                st.success("Votre mur d'enceinte a stoppé les voleurs ! Ils fuient !")
+                                time.sleep(2)
+                                data["evenement_actif"] = None
+                                save_data(data)
+                                st.rerun()
+                        else:
+                            st.warning("⚠️ Vos cultures sont à découvert !")
+                            st.caption("Pour vous défendre : Construisez un mur d'au moins 1 Kapla de haut tout autour de vos champs (Phase 4).")
+    
+                elif nom_evt == "Saison de la Chasse":
+                    # --- VUE MAÎTRE DE CHASSE (Celui qui a organisé) ---
+                    if st.session_state.user_name == info.get("maitre"):
+                        st.success("👑 VOUS ÊTES LE MAÎTRE DE CHASSE !")
+                        st.write(f"**Instructions** : {info.get('instruction')}")
+                        st.info("🎯 Cachez les animaux. Les joueurs valident leur butin sur leur écran.")
                         
-                        st.balloons()
-                        st.success("🎉 BÉNÉDICTION ACCORDÉE ! Vos ressources ont doublé !")
-                        
-                        # On ferme l'événement pour tout le monde
-                        data["evenement_actif"] = None
-                        # On peut ajouter un log pour dire qui a gagné si tu veux
-                        save_data(data)
-                        time.sleep(2)
+                        # Afficher qui a déjà ramené du gibier
+                        chasseurs = info.get("chasseurs_valides", [])
+                        if chasseurs:
+                            st.write("📊 **Chasseurs revenus :** " + ", ".join(chasseurs))
+                        else:
+                            st.caption("Aucun chasseur n'est encore revenu...")
+    
+                        st.divider()
+                        st.write("Une fois que tout le monde a fini :")
+                        if st.button("🏁 TERMINER L'ÉVÉNEMENT (Fin de la Chasse)"):
+                            me["ecus"] += 100 # Prime pour l'organisateur
+                            terminer_evenement_et_jour(data)
+                            st.rerun()
+    
+                    # --- VUE CHASSEURS (Tous les autres joueurs) ---
+                    else:
+                        # Vérifier si le joueur a déjà validé son butin
+                        if st.session_state.user_name in info.get("chasseurs_valides", []):
+                            st.success("✅ BUTIN VALIDÉ !")
+                            st.info("🎒 Vos prises ont été ajoutées à votre inventaire.")
+                            st.caption("En attente de la fin de la chasse par le Maître...")
+                            time.sleep(2)
+                            st.rerun()
+                        else:
+                            st.subheader("🏹 C'est la Chasse ! Rapportez votre butin.")
+                            st.write(f"Cherchez les animaux cachés par **{info.get('maitre')}** !")
+    
+                            c1, c2, c3 = st.columns(3)
+                            nb_petit = c1.number_input("🐇 Petit", 0, 10, 0)
+                            nb_moyen = c2.number_input("🐗 Moyen", 0, 5, 0)
+                            nb_gros = c3.number_input("🐻 Gros", 0, 2, 0)
+    
+                            # Gestion du Couteau à Champignons
+                            nb_champi = 0
+                            if helper.a_objet("Couteau Champignon"):
+                                st.success("🍄 Couteau actif !")
+                                nb_champi = st.number_input("🍄 Champignons", 0, 20, 0)
+    
+                            st.divider()
+                            
+                            if st.button("✅ VALIDER MON BUTIN", type="primary"):
+                                # Mise à jour inventaire
+                                if "stock_gibier" not in me: me["stock_gibier"] = {"Petit":0, "Moyen":0, "Gros":0}
+                                me["stock_gibier"]["Petit"] += nb_petit
+                                me["stock_gibier"]["Moyen"] += nb_moyen
+                                me["stock_gibier"]["Gros"] += nb_gros
+                                if nb_champi > 0:
+                                    me["stock_champignons"] = me.get("stock_champignons", 0) + nb_champi
+    
+                                # Enregistrement
+                                if "chasseurs_valides" not in info: info["chasseurs_valides"] = []
+                                info["chasseurs_valides"].append(st.session_state.user_name)
+                                
+                                save_data(data)
+                                st.balloons()
+                                st.rerun()
+    
+                elif nom_evt == "Passage du Roi":
+                    st.success(f"👑 LE ROI VOUS REND VISITE !")
+                    st.write(f"**Condition** : {info.get('condition')}")
+                    st.write(f"**Récompense potentielle** : {info.get('gain')}$")
+    
+                    col1, col2 = st.columns(2)
+                    if col1.button("✅ J'AI LES CONDITIONS"):
+                        me["ecus"] += info.get("gain", 0)
+                        st.success(f"🎉 Vous recevez {info.get('gain')}$ du Roi !")
+                        terminer_evenement_et_jour(data)
                         st.rerun()
-                    else:
-                        st.error("Trop tard ! Quelqu'un d'autre a déjà gagné.")
-                        time.sleep(2)
+                    if col2.button("❌ JE N'AI PAS LES CONDITIONS"):
+                        st.info("Le Roi repart sans vous donner d'or.")
+                        terminer_evenement_et_jour(data)
                         st.rerun()
-
-            elif nom_evt == "Le Banquet":
-                st.success("🍽️ VOUS ORGANISEZ UN GRAND BANQUET !")
-                st.write(f"**Instructions** : {info.get('instruction')}")
-                st.write(f"**Récompense** : {info.get('recompense')}")
-
-                col1, col2 = st.columns(2)
-                if col1.button("✅ J'AI LA TABLE ET LES CHAISES"):
-                    me["bonus_banquet"] = 3
-                    st.success("🎉 Le Roi est impressionné ! Production x2 pendant 3 jours !")
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-                if col2.button("❌ JE N'AI PAS TOUT"):
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-
-            elif nom_evt == "L'Espion":
-                st.error("🗡️ UN ASSASSIN RÔDE !")
-                st.write(f"**Instructions** : {info.get('instruction')}")
-                st.write("Vous avez 1 minute pour cacher votre figurine Chef chez un autre joueur")
-                st.caption(f"**Pénalité** : {info.get('penalite')}")
-
-                col1, col2 = st.columns(2)
-                if col1.button("✅ J'AI RÉUSSI À ME CACHER"):
-                    st.success("🎉 Vous avez échappé à l'assassin !")
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-                if col2.button("❌ ILS M'ONT TROUVÉ"):
-                    if me.get("enfants", 0) > 0:
-                        me["enfants"] -= 1
-                        st.error("💔 Vous perdez un enfant...")
-                    elif me.get("conjoint"):
-                        me["conjoint"] = None
-                        st.error("💔 Vous perdez votre conjoint...")
-                    elif me.get("nb_ouvriers", 0) > 0:
-                        me["nb_ouvriers"] -= 1
-                        st.error("💔 Vous perdez un ouvrier...")
-                    else:
-                        me["vie"] = max(0, me["vie"] - 15)
-                        st.error("💔 Vous perdez 15 PV...")
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    st.rerun()
-
-            elif nom_evt == "Attaque Surprise":
-                st.error("⚔️ ATTAQUE SURPRISE !")
-                st.write(f"**Instructions** : {info.get('instruction')}")
-                nb_fig = info.get("nb_figurines", 3)
-                nb_essais = info.get("nb_essais", 10)
-                st.write(f"**Nombre de figurines** : {nb_fig}")
-                st.write(f"**Nombre d'essais** : {nb_essais}")
-                st.caption(f"**Pénalité** : {info.get('penalite')}")
-
-                st.divider()
-                st.subheader("📊 Résultat de votre défense")
-                
-                # Menu pour saisir le nombre de figurines restantes
-                restantes = st.number_input(
-                    "Combien de figurines sont encore debout ?", 
-                    min_value=0, 
-                    max_value=nb_fig, 
-                    value=0,
-                    help=f"Indiquez le nombre de figurines restantes (0 à {nb_fig})"
-                )
-
-                # Calcul du résultat
-                if restantes == 0:
-                    # Victoire : gain = nombre total de figurines * 10
-                    gain = nb_fig * 10
-                    st.success(f"🎉 VICTOIRE TOTALE ! Toutes les figurines sont tombées !")
-                    st.info(f"💰 Vous gagnez {gain}$ de prime !")
-                else:
-                    # Défaite : perte = nombre restantes * 20
-                    perte = restantes * 20
-                    st.warning(f"⚠️ Il reste {restantes} figurine(s) debout.")
-                    st.info(f"💸 Pénalité : -{perte}$ ({restantes} × 20$)")
-
-                st.divider()
-
-                # Bouton pour valider le résultat
-                if st.button("✅ VALIDER LE RÉSULTAT", type="primary", use_container_width=True):
-                    if restantes == 0:
-                        # Victoire : gain
-                        gain = nb_fig * 10
-                        me["ecus"] += gain
-                        st.balloons()
-                        st.success(f"🎉 Victoire ! Vous gagnez {gain}$ de prime !")
-                    else:
-                        # Défaite : perte
-                        perte = restantes * 20
-                        me["ecus"] = max(0, me["ecus"] - perte)
-                        st.error(f"Vous perdez {perte}$ ({restantes} figurine(s) restante(s))")
+    
+                elif nom_evt == "Le Monument":
+                    st.info("🏛️ DÉFI COLLECTIF : LES DIEUX RÉCLAMENT UNE OFFRANDE !")
+                    st.warning(f"🏆 {info.get('instruction')}")
+                    st.write("Le **PREMIER** joueur à valider remporte la bénédiction !")
+    
+                    # Bouton de course : Le premier qui clique gagne
+                    if st.button("🏁 J'AI TERMINÉ LA TOUR EN PREMIER !", type="primary", use_container_width=True):
+                        # On vérifie si l'event est toujours actif (anti-conflit)
+                        if data.get("evenement_actif"):
+                            me["stock_ble"] = me.get("stock_ble", 0) * 2
+                            me["kaplas"] = me.get("kaplas", 0) * 2
+                            gibier = me.get("stock_gibier", {})
+                            for k in gibier:
+                                gibier[k] *= 2
+    
+                            st.balloons()
+                            st.success("🎉 BÉNÉDICTION ACCORDÉE ! Vos ressources ont doublé !")
+    
+                            # On ferme l'événement et déclenche nouveau jour
+                            terminer_evenement_et_jour(data)
+                            time.sleep(2)
+                            st.rerun()
+                        else:
+                            st.error("Trop tard ! Quelqu'un d'autre a déjà gagné.")
+                            time.sleep(2)
+                            st.rerun()
+    
+                elif nom_evt == "Le Banquet":
+                    st.success("🍽️ VOUS ORGANISEZ UN GRAND BANQUET !")
+                    st.write(f"**Instructions** : {info.get('instruction')}")
+                    st.write(f"**Récompense** : {info.get('recompense')}")
+    
+                    col1, col2 = st.columns(2)
+                    if col1.button("✅ J'AI LA TABLE ET LES CHAISES"):
+                        me["bonus_banquet"] = 3
+                        st.success("🎉 Le Roi est impressionné ! Production x2 pendant 3 jours !")
+                        terminer_evenement_et_jour(data)
+                        st.rerun()
+                    if col2.button("❌ JE N'AI PAS TOUT"):
+                        terminer_evenement_et_jour(data)
+                        st.rerun()
+    
+                elif nom_evt == "L'Espion":
+                    st.error("🗡️ UN ASSASSIN RÔDE !")
+                    st.write(f"**Instructions** : {info.get('instruction')}")
+                    st.write("Vous avez 1 minute pour cacher votre figurine Chef chez un autre joueur")
+                    st.caption(f"**Pénalité** : {info.get('penalite')}")
+    
+                    col1, col2 = st.columns(2)
+                    if col1.button("✅ J'AI RÉUSSI À ME CACHER"):
+                        st.success("🎉 Vous avez échappé à l'assassin !")
+                        terminer_evenement_et_jour(data)
+                        st.rerun()
+                    if col2.button("❌ ILS M'ONT TROUVÉ"):
+                        if me.get("enfants", 0) > 0:
+                            me["enfants"] -= 1
+                            st.error("💔 Vous perdez un enfant...")
+                        elif me.get("conjoint"):
+                            me["conjoint"] = None
+                            st.error("💔 Vous perdez votre conjoint...")
+                        elif me.get("nb_ouvriers", 0) > 0:
+                            me["nb_ouvriers"] -= 1
+                            st.error("💔 Vous perdez un ouvrier...")
+                        else:
+                            me["vie"] = max(0, me["vie"] - 15)
+                            st.error("💔 Vous perdez 15 PV...")
+                        terminer_evenement_et_jour(data)
+                        st.rerun()
+    
+                elif nom_evt == "Attaque Surprise":
+                    st.error("⚔️ ATTAQUE SURPRISE !")
+                    st.write(f"**Instructions** : {info.get('instruction')}")
+                    nb_fig = info.get("nb_figurines", 3)
+                    nb_essais = info.get("nb_essais", 10)
+                    st.write(f"**Nombre de figurines** : {nb_fig}")
+                    st.write(f"**Nombre d'essais** : {nb_essais}")
+                    st.caption(f"**Pénalité** : {info.get('penalite')}")
+    
+                    st.divider()
+                    st.subheader("📊 Résultat de votre défense")
                     
-                    data["evenement_actif"] = None
-                    save_data(data)
-                    time.sleep(2)
-                    st.rerun()
-
-        else:
-            # ========================================================
-            # MODE SPECTATEUR : Les autres joueurs observent
-            # ========================================================
-            st.warning(f"⚠️ ÉVÉNEMENT EN COURS : {nom_evt}")
-
-            st.write(f"👤 **Joueur ciblé** : {info.get('cible')}")
-            if info.get("maitre"):
-                st.write(f"👑 **Maître du jeu** : {info.get('maitre')}")
-
-            st.info("⏳ Le jeu est en pause pour les autres joueurs...")
-
-            # Barre de chargement pour montrer que ça tourne
-            st.progress(random.random())
-            st.caption("Actualisation automatique en attente de la fin de l'événement...")
-
-            # AUTO REFRESH SPECTATEUR
-            time.sleep(2)
-            st.rerun()
-
-    # ============================================================
-    # 4. MODE JEU NORMAL (Pas d'événement actif)
-    # ============================================================
-    else:
-        # C'est ici que l'on met tout le reste : Phase 0, 1, 2, 3, 4
-        # Le code des onglets, des actions, des achats, etc.
-
-        phase = data["phase"]
-
-        if phase == 0:
-            st.warning("⏳ En attente du lancement de la partie par le Maître du Jeu...")
-
-        elif phase == 1:
-            st.header("🌅 Phase 1 : Réveil")
-
-            # --- AFFICHAGE PIOCHE DU MATIN ---
-            if "info_pioche" in data:
-                info = data["info_pioche"]
-                st.markdown(f"""
-                <div style="background:#ffd700;padding:15px;border-radius:10px;border:3px solid #8b6914;margin-bottom:20px;">
-                    <h3 style="color:#4a3b2a;text-align:center;margin:0;">👐 Distribution du Matin : {info['type']}</h3>
-                </div>
-                """, unsafe_allow_html=True)
-
-                st.write("**📋 Ordre de passage (du plus pauvre au plus riche) :**")
-
-                # Affichage de l'ordre avec mise en évidence
-                for idx, nom in enumerate(info['ordre']):
-                    if idx == 0:
-                        st.markdown(f"### 🥇 **{nom}** (Premier à se servir !)")
-                    elif idx == 1:
-                        st.markdown(f"🥈 **{nom}**")
-                    elif idx == 2:
-                        st.markdown(f"🥉 **{nom}**")
+                    # Menu pour saisir le nombre de figurines restantes
+                    restantes = st.number_input(
+                        "Combien de figurines sont encore debout ?", 
+                        min_value=0, 
+                        max_value=nb_fig, 
+                        value=0,
+                        help=f"Indiquez le nombre de figurines restantes (0 à {nb_fig})"
+                    )
+    
+                    # Calcul du résultat
+                    if restantes == 0:
+                        # Victoire : gain = nombre total de figurines * 10
+                        gain = nb_fig * 10
+                        st.success(f"🎉 VICTOIRE TOTALE ! Toutes les figurines sont tombées !")
+                        st.info(f"💰 Vous gagnez {gain}$ de prime !")
                     else:
-                        st.write(f"{idx+1}. {nom}")
-
-                st.divider()
-
-            if me.get("rapport_nuit"):
-                with st.expander("📜 Bilan de la nuit", expanded=True):
-                    for ligne in me["rapport_nuit"]:
-                        st.write(f"- {ligne}")
-
-            # Rapport de combats subis (messages laissés par les autres joueurs)
-            if "rapport_combat" not in me:
-                me["rapport_combat"] = []
-            if me.get("rapport_combat"):
-                with st.expander("⚔️ Rapports de combat reçus", expanded=True):
-                    for ligne in me["rapport_combat"]:
-                        st.warning(ligne)
-                # Une fois lus, on vide la boîte de réception
-                me["rapport_combat"] = []
-                save_data(data)
-
-        elif phase == 2:
-            st.header("🔨 Phase 2 : Actions")
-
-            act = me.get("action_du_jour")
-
-            # Vérifier si prêt
-            est_pret = st.session_state.user_name in data.get("joueurs_prets", [])
-
-            if est_pret:
-                # --- ÉCRAN D'ATTENTE DYNAMIQUE ---
-                nb_prets = len(data.get("joueurs_prets", []))
-                total_joueurs = len(data["joueurs"])
-
-                st.success("✅ Vous êtes PRÊT !")
-                st.info(f"⏳ En attente des autres joueurs...")
-                st.metric("Joueurs prêts", f"{nb_prets} / {total_joueurs}")
-
-                # Auto-refresh toutes les 2 secondes pour détecter le changement de phase
+                        # Défaite : perte = nombre restantes * 20
+                        perte = restantes * 20
+                        st.warning(f"⚠️ Il reste {restantes} figurine(s) debout.")
+                        st.info(f"💸 Pénalité : -{perte}$ ({restantes} × 20$)")
+    
+                    st.divider()
+    
+                    # Bouton pour valider le résultat
+                    if st.button("✅ VALIDER LE RÉSULTAT", type="primary", use_container_width=True):
+                        if restantes == 0:
+                            # Victoire : gain
+                            gain = nb_fig * 10
+                            me["ecus"] += gain
+                            st.balloons()
+                            st.success(f"🎉 Victoire ! Vous gagnez {gain}$ de prime !")
+                        else:
+                            # Défaite : perte
+                            perte = restantes * 20
+                            me["ecus"] = max(0, me["ecus"] - perte)
+                            st.error(f"Vous perdez {perte}$ ({restantes} figurine(s) restante(s))")
+    
+                        terminer_evenement_et_jour(data)
+                        time.sleep(2)
+                        st.rerun()
+    
+            else:
+                # ========================================================
+                # MODE SPECTATEUR : Les autres joueurs observent
+                # ========================================================
+                st.warning(f"⚠️ ÉVÉNEMENT EN COURS : {nom_evt}")
+    
+                st.write(f"👤 **Joueur ciblé** : {info.get('cible')}")
+                if info.get("maitre"):
+                    st.write(f"👑 **Maître du jeu** : {info.get('maitre')}")
+    
+                st.info("⏳ Le jeu est en pause pour les autres joueurs...")
+    
+                # Barre de chargement pour montrer que ça tourne
+                st.progress(random.random())
+                st.caption("Actualisation automatique en attente de la fin de l'événement...")
+    
+                # AUTO REFRESH SPECTATEUR (mode rapide: 2s pour Monument/Chasse)
                 time.sleep(2)
                 st.rerun()
-
-            else:
-                # --- LOGIQUE RESTRICTIVE PAR CATÉGORIE ---
-
-                # CAS A : Pas encore d'action, afficher tous les onglets
-                if act is None:
-                    tab1, tab2, tab3, tab4 = st.tabs(["💼 Gestion", "⚒️ Travailler", "⚖️ Vendre", "⚔️ Guerre"])
-
-                    # --- GESTION (Action coup de poing) ---
+    
+        # ============================================================
+        # 4. MODE JEU NORMAL (Pas d'événement actif)
+        # ============================================================
+        else:
+            # C'est ici que l'on met tout le reste : Phase 0, 1, 2, 3, 4
+            # Le code des onglets, des actions, des achats, etc.
+    
+            phase = data["phase"]
+    
+            if phase == 0:
+                st.warning("⏳ En attente du lancement de la partie par le Maître du Jeu...")
+    
+            elif phase == 1:
+                st.header("🌅 Phase 1 : Réveil")
+    
+                # Bilan de la nuit
+                if me.get("rapport_nuit"):
+                    with st.expander("📜 Bilan de la nuit", expanded=True):
+                        for ligne in me["rapport_nuit"]:
+                            st.write(f"- {ligne}")
+    
+                # Rapport de combats subis (messages laissés par les autres joueurs)
+                if "rapport_combat" not in me:
+                    me["rapport_combat"] = []
+                if me.get("rapport_combat"):
+                    with st.expander("⚔️ Rapports de combat reçus", expanded=True):
+                        for ligne in me["rapport_combat"]:
+                            st.warning(ligne)
+                    # Une fois lus, on vide la boîte de réception
+                    me["rapport_combat"] = []
+                    save_data(data)
+    
+            elif phase == 2:
+                st.header("🔨 Phase 2 : Actions")
+    
+                # Compteur d'actions du jour
+                actions_faites = me.get("nb_actions_jour", 0)
+                actions_restantes = 3 - actions_faites
+    
+                if actions_restantes > 0:
+                    st.info(f"⚡ Actions stratégiques restantes : **{actions_restantes}/3** (Terrain, Ouvrier, Guerre)")
+                else:
+                    st.warning("🚫 Quota d'actions stratégiques atteint (3/3). Vous pouvez encore Travailler ou Vendre.")
+    
+                # État actuel du joueur
+                mode_actuel = me.get("action_du_jour")  # Peut être "TRAVAIL", "VENTE", "GUERRE" ou None
+                quota_atteint = actions_restantes <= 0
+    
+                # Vérifier si prêt
+                est_pret = st.session_state.user_name in data.get("joueurs_prets", [])
+    
+                if est_pret:
+                    # --- ÉCRAN D'ATTENTE DYNAMIQUE ---
+                    nb_prets = len(data.get("joueurs_prets", []))
+                    total_joueurs = len(data["joueurs"])
+    
+                    st.success("✅ Vous êtes PRÊT !")
+                    st.info(f"⏳ En attente des autres joueurs...")
+                    st.metric("Joueurs prêts", f"{nb_prets} / {total_joueurs}")
+    
+                    # Auto-refresh toutes les 2 secondes pour voir rapidement le timer du maître
+                    time.sleep(2)
+                    st.rerun()
+    
+                else:
+                    # Message d'état selon le mode actuel
+                    if mode_actuel == "TRAVAIL":
+                        st.info("🔨 Mode TRAVAIL actif (Vente interdite)")
+                    elif mode_actuel == "VENTE":
+                        st.info("💰 Mode VENTE actif (Travail interdit)")
+    
+                    # ============================================================
+                    # AFFICHAGE DES 4 ONGLETS (TOUJOURS VISIBLES)
+                    # ============================================================
+                    tab1, tab2, tab3, tab4 = st.tabs(["💼 Gestion", "⚒️ Travail", "⚖️ Vente", "⚔️ Guerre"])
+    
+                    # ============================================================
+                    # TAB 1 : GESTION (Terrain, Ouvrier)
+                    # ============================================================
                     with tab1:
                         stats = STATS_METIERS.get(me["metier"], STATS_METIERS["Fermier"])
                         st.subheader("Gestion des ressources")
-                        st.warning("⚠️ Acheter un terrain ou recruter un ouvrier termine votre tour !")
-
+                        st.warning("⚠️ Acheter un terrain ou recruter un ouvrier compte comme 1 action stratégique !")
+    
                         c_a, c_b = st.columns(2)
                         with c_a:
                             st.write("**Terrains**")
                             prix_t = stats['cout_terrain']
                             st.metric("Terrains possédés", me.get('nb_terrains', 0))
                             st.caption(f"Bonus: +{int(stats['bonus_terrain']*100)}% prod par terrain")
-                            if st.button(f"Acheter Terrain (-{prix_t}$)", key="bt"):
+    
+                            if quota_atteint:
+                                st.error("🚫 Quota d'actions atteint (3/3)")
+                            elif st.button(f"Acheter Terrain (-{prix_t}$)", key="bt"):
                                 if me["ecus"] >= prix_t:
                                     me["ecus"] -= prix_t
                                     me["nb_terrains"] += 1
-                                    me["action_du_jour"] = "GESTION"
-                                    if st.session_state.user_name not in data.get("joueurs_prets", []):
-                                        data["joueurs_prets"].append(st.session_state.user_name)
+                                    me["nb_actions_jour"] += 1
+                                    st.toast(f"✅ Terrain acheté ! Actions: {me['nb_actions_jour']}/3", icon="🏗️")
                                     save_data(data)
                                     st.rerun()
                                 else:
                                     st.error("💸 Pas assez d'argent")
-
+    
                         with c_b:
                             st.write("**Ouvriers**")
                             st.metric("Ouvriers embauchés", me.get('nb_ouvriers', 0))
                             toits = helper.get_toits_disponibles_pour_embauche()
                             st.caption(f"Toits libres : {toits} (Requis: 2 par ouvrier)")
-                            if st.button(f"Recruter Ouvrier (-{PRIX_OUVRIER}$)", key="bo"):
+    
+                            if quota_atteint:
+                                st.error("🚫 Quota d'actions atteint (3/3)")
+                            elif st.button(f"Recruter Ouvrier (-{PRIX_OUVRIER}$)", key="bo"):
                                 if me["ecus"] < PRIX_OUVRIER:
                                     st.error("💸 Pas assez d'argent")
                                 elif toits < 2:
@@ -1637,647 +2185,726 @@ elif st.session_state.user_role == "PLAYER":
                                 else:
                                     me["ecus"] -= PRIX_OUVRIER
                                     me["nb_ouvriers"] += 1
-                                    me["action_du_jour"] = "GESTION"
-                                    if st.session_state.user_name not in data.get("joueurs_prets", []):
-                                        data["joueurs_prets"].append(st.session_state.user_name)
+                                    me["nb_actions_jour"] += 1
+                                    st.toast(f"✅ Ouvrier recruté ! Actions: {me['nb_actions_jour']}/3", icon="👷")
                                     save_data(data)
                                     st.rerun()
-
-                    # --- TRAVAIL ---
+    
+                    # ============================================================
+                    # TAB 2 : TRAVAIL
+                    # ============================================================
                     with tab2:
-                        stats = STATS_METIERS.get(me["metier"], STATS_METIERS["Fermier"])
-                        cout = stats["cout_fatigue"]
-
-                        st.subheader(f"⚒️ Travailler ({me['metier']})")
-                        st.info("💡 Une fois que vous travaillez, vous ne pouvez plus faire d'autre action (Gestion/Vente/Guerre)")
-                        st.write(f"Coût en fatigue : **{cout}** points")
-
-                        coeff = helper.get_prod_coeff(data["jour"])
-                        st.caption(f"Coefficient actuel : x{coeff:.2f}")
-
-                        # Estimation du gain de production (min / max)
-                        bonus_fixe = helper.get_bonus_fixe_production()
-                        gain_min = int(stats["base_min"] * coeff) + bonus_fixe
-                        gain_max = int(stats["base_max"] * coeff) + bonus_fixe
-
-                        if st.button("🔨 Travailler maintenant", type="primary"):
-                            if me["faim"] >= cout:
-                                me["faim"] -= cout
-
-                                gain = int(random.randint(stats["base_min"], stats["base_max"]) * coeff) + helper.get_bonus_fixe_production()
-
-                                if me["metier"] == "Fermier":
-                                    me["stock_ble"] += gain
-                                    st.toast(f"✅ Récolte : +{gain} Blé 🌾", icon="🌾")
-                                elif me["metier"] == "Bûcheron":
-                                    me["kaplas"] += gain
-                                    st.toast(f"✅ Production : +{gain} Kaplas 🧱", icon="🧱")
-                                elif me["metier"] == "Vigneron":
-                                    if me["ecus"] >= 10:
-                                        me["ecus"] -= 10
-                                        me["stock_vin"].append(0)
-                                        st.toast("✅ Nouvelle cuvée lancée 🍷", icon="🍷")
-                                    else:
-                                        st.toast("❌ Pas assez d'or (10$ requis)", icon="💸")
-
-                                # Marquer que le joueur est en mode TRAVAIL
-                                me["action_du_jour"] = "TRAVAIL_EN_COURS"
-                                save_data(data)
-                                time.sleep(1)
-                                st.rerun()
-                            else:
-                                st.error("😫 Trop fatigué ! Mangez d'abord.")
-
-                    # --- VENTE ---
+                        if mode_actuel == "VENTE":
+                            st.warning("🚫 Impossible de travailler : Vous avez déjà commencé à vendre.")
+                        else:
+                            stats = STATS_METIERS.get(me["metier"], STATS_METIERS["Fermier"])
+                            cout = stats["cout_fatigue"]
+    
+                            st.subheader(f"⚒️ Travailler ({me['metier']})")
+                            st.write(f"Coût en fatigue : **{cout}** points")
+    
+                            coeff = helper.get_prod_coeff(data["jour"])
+                            st.caption(f"Coefficient actuel : x{coeff:.2f}")
+    
+                            # Estimation du gain de production (min / max)
+                            bonus_fixe = helper.get_bonus_fixe_production()
+                            gain_min = int(stats["base_min"] * coeff) + bonus_fixe
+                            gain_max = int(stats["base_max"] * coeff) + bonus_fixe
+                            st.caption(f"Gain estimé : entre {gain_min} et {gain_max} ressources")
+    
+                            if st.button("🔨 Travailler maintenant", type="primary"):
+                                if me["faim"] >= cout:
+                                    me["faim"] -= cout
+    
+                                    gain = int(random.randint(stats["base_min"], stats["base_max"]) * coeff) + helper.get_bonus_fixe_production()
+    
+                                    if me["metier"] == "Fermier":
+                                        me["stock_ble"] += gain
+                                        st.toast(f"✅ Récolte : +{gain} Blé 🌾", icon="🌾")
+                                    elif me["metier"] == "Bûcheron":
+                                        me["kaplas"] += gain
+                                        st.toast(f"✅ Production : +{gain} Kaplas 🧱", icon="🧱")
+                                    elif me["metier"] == "Vigneron":
+                                        if me["ecus"] >= 10:
+                                            me["ecus"] -= 10
+                                            me["stock_vin"].append(0)
+                                            st.toast("✅ Nouvelle cuvée lancée 🍷", icon="🍷")
+                                        else:
+                                            st.toast("❌ Pas assez d'or (10$ requis)", icon="💸")
+    
+                                    # Marquer que le joueur est en mode TRAVAIL (bloque Vente)
+                                    me["action_du_jour"] = "TRAVAIL"
+                                    save_data(data)
+                                    time.sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error("😫 Trop fatigué ! Mangez d'abord.")
+    
+                    # ============================================================
+                    # TAB 3 : VENTE
+                    # ============================================================
                     with tab3:
-                        st.subheader("⚖️ Vendre vos ressources")
-                        st.info("💡 Une fois que vous vendez, vous ne pouvez plus faire d'autre action (Gestion/Travail/Guerre)")
-
-                        if me["metier"] == "Fermier":
-                            st.write(f"Stock de Blé : **{me['stock_ble']}** 🌾")
-                            st.write(f"Cours actuel : **{data['cours_ble']}$** / unité")
-
-                            if me['stock_ble'] > 0:
-                                q = st.number_input("Quantité à vendre", 1, me['stock_ble'], 1, key="vente_ble")
-                                bonus = 1.1 if helper.a_objet("Charrette") else 1.0
-                                gain_estime = int(q * data["cours_ble"] * bonus)
-                                st.caption(f"Gain estimé : {gain_estime}$")
-
-                                if st.button("💰 Vendre"):
-                                    me["stock_ble"] -= q
-                                    me["ecus"] += gain_estime
-                                    me["action_du_jour"] = "VENTE_EN_COURS"
-                                    st.toast(f"💰 Vendu {q} Blé pour {gain_estime}$", icon="💰")
-                                    save_data(data)
-                                    st.rerun()
-
-                        elif me["metier"] == "Bûcheron":
-                            st.write(f"Stock de Kaplas : **{me['kaplas']}** 🧱")
-                            cours_vente = max(1, data["cours_kapla"] - 2)
-                            st.write(f"Cours de vente : **{cours_vente}$** / unité")
-
-                            if me['kaplas'] > 0:
-                                q = st.number_input("Quantité à vendre", 1, me['kaplas'], 1, key="vente_kapla")
-                                bonus = 1.1 if helper.a_objet("Charrette") else 1.0
-                                gain_estime = int(q * cours_vente * bonus)
-                                st.caption(f"Gain estimé : {gain_estime}$")
-
-                                if st.button("💰 Vendre"):
-                                    me["kaplas"] -= q
-                                    me["ecus"] += gain_estime
-                                    me["action_du_jour"] = "VENTE_EN_COURS"
-                                    st.toast(f"💰 Vendu {q} Kaplas pour {gain_estime}$", icon="💰")
-                                    save_data(data)
-                                    st.rerun()
-
-                        elif me["metier"] == "Vigneron" and me["stock_vin"]:
-                            st.write("🍷 **Vos cuvées de vin**")
-
-                            for idx, age in enumerate(me["stock_vin"]):
-                                prix = int(1.2 * helper.get_prod_coeff(data["jour"]) * (age ** 2))
-                                prix = max(5, prix)
-                                col1, col2 = st.columns([3, 1])
-                                col1.write(f"Bouteille #{idx+1} - Âge: {age} jours - Valeur: {prix}$")
-                                if col2.button(f"Vendre", key=f"vin_{idx}"):
-                                    me["stock_vin"].pop(idx)
-                                    me["ecus"] += prix
-                                    me["action_du_jour"] = "VENTE_EN_COURS"
-                                    save_data(data)
-                                    st.rerun()
-
-                    # --- GUERRE (Action coup de poing) ---
+                        if mode_actuel == "TRAVAIL":
+                            st.warning("🚫 Impossible de vendre : Vous avez déjà commencé à travailler.")
+                        else:
+                            st.subheader("⚖️ Vendre vos ressources")
+    
+                            if me["metier"] == "Fermier":
+                                st.write(f"Stock de Blé : **{me['stock_ble']}** 🌾")
+                                st.write(f"Cours actuel : **{data['cours_ble']}$** / unité")
+    
+                                has_charrette = helper.a_objet("Charrette")
+                                if has_charrette:
+                                    st.success("🛒 BONUS CHARRETTE : +10% sur les ventes !")
+    
+                                if me['stock_ble'] > 0:
+                                    q = st.number_input("Quantité à vendre", 1, me['stock_ble'], 1, key="vente_ble")
+                                    bonus = 1.1 if has_charrette else 1.0
+                                    gain_estime = int(q * data["cours_ble"] * bonus)
+    
+                                    # Affichage du gain en gros
+                                    st.markdown(f"<h2 style='color: green;'>💰 GAIN TOTAL : {gain_estime}$</h2>", unsafe_allow_html=True)
+                                    if has_charrette:
+                                        st.caption(f"Calcul : {q} × {data['cours_ble']}$ × 1.1 (Charrette)")
+    
+                                    if st.button("💰 Vendre", type="primary", use_container_width=True):
+                                        me["stock_ble"] -= q
+                                        me["ecus"] += gain_estime
+                                        me["action_du_jour"] = "VENTE"
+                                        st.toast(f"💰 Vendu {q} Blé pour {gain_estime}$", icon="💰")
+                                        save_data(data)
+                                        st.rerun()
+    
+                            elif me["metier"] == "Bûcheron":
+                                st.write(f"Stock de Kaplas : **{me['kaplas']}** 🧱")
+                                cours_vente = max(1, data["cours_kapla"] - 2)
+                                st.write(f"Cours de vente : **{cours_vente}$** / unité")
+    
+                                has_charrette = helper.a_objet("Charrette")
+                                if has_charrette:
+                                    st.success("🛒 BONUS CHARRETTE : +10% sur les ventes !")
+    
+                                if me['kaplas'] > 0:
+                                    q = st.number_input("Quantité à vendre", 1, me['kaplas'], 1, key="vente_kapla")
+                                    bonus = 1.1 if has_charrette else 1.0
+                                    gain_estime = int(q * cours_vente * bonus)
+    
+                                    # Affichage du gain en gros
+                                    st.markdown(f"<h2 style='color: green;'>💰 GAIN TOTAL : {gain_estime}$</h2>", unsafe_allow_html=True)
+                                    if has_charrette:
+                                        st.caption(f"Calcul : {q} × {cours_vente}$ × 1.1 (Charrette)")
+    
+                                    if st.button("💰 Vendre", type="primary", use_container_width=True):
+                                        me["kaplas"] -= q
+                                        me["ecus"] += gain_estime
+                                        me["action_du_jour"] = "VENTE"
+                                        st.toast(f"💰 Vendu {q} Kaplas pour {gain_estime}$", icon="💰")
+                                        save_data(data)
+                                        st.rerun()
+    
+                            elif me["metier"] == "Vigneron" and me["stock_vin"]:
+                                st.write("🍷 **Vos cuvées de vin**")
+                                st.info("💡 Plus le vin vieillit, plus il vaut cher !")
+    
+                                for idx, age in enumerate(me["stock_vin"]):
+                                    prix = int(1.2 * helper.get_prod_coeff(data["jour"]) * (age ** 2))
+                                    prix = max(5, prix)
+                                    col1, col2 = st.columns([3, 1])
+                                    col1.write(f"🍷 **Bouteille #{idx+1}**")
+                                    col1.caption(f"Âge: {age} jours")
+                                    col1.markdown(f"<h3 style='color: green;'>💰 Valeur: {prix}$</h3>", unsafe_allow_html=True)
+    
+                                    if col2.button(f"Vendre", key=f"vin_{idx}", type="primary"):
+                                        me["stock_vin"].pop(idx)
+                                        me["ecus"] += prix
+                                        me["action_du_jour"] = "VENTE"
+                                        save_data(data)
+                                        st.rerun()
+    
+                    # ============================================================
+                    # TAB 4 : GUERRE
+                    # ============================================================
                     with tab4:
                         st.subheader("⚔️ Attaquer un autre joueur")
-                        st.warning("⚠️ Attaquer termine votre tour !")
-
-                        cibles = [p["nom"] for p in data["joueurs"] if p["nom"] != me["nom"] and p.get("vie", 0) > 0]
-                        if not cibles:
-                            st.info("Personne à attaquer.")
+                        st.warning("⚠️ Attaquer compte comme 1 action stratégique !")
+    
+                        # Vérifier le quota d'actions
+                        if quota_atteint:
+                            st.error("🚫 Quota d'actions stratégiques atteint (3/3). Vous ne pouvez plus attaquer aujourd'hui.")
+                            st.info("💡 Vous pouvez toujours Travailler ou Vendre vos ressources.")
                         else:
-                            cible_nom = st.selectbox("Choisir la cible", cibles)
-                            cible = next(p for p in data["joueurs"] if p["nom"] == cible_nom)
-
-                            # Initialisation de la boite aux lettres si elle n'existe pas (sécurité)
-                            if "rapport_combat" not in cible: 
-                                cible["rapport_combat"] = []
-
-                            st.write("---")
-                            col_info1, col_info2 = st.columns(2)
-                            with col_info1:
-                                st.write(f"**🕵️ Renseignement sur {cible_nom}**")
-                                st.write(f"- Tours visibles : {cible.get('nb_tours', 0)} 🗼")
-                                st.write(f"- Or visible (estimé) : {cible.get('ecus', 0) // 10 * 10}+ 💰")
-
-                            with col_info2:
-                                rive_j = helper.get_rive()
-                                rive_c = JoueurHelper(cible).get_rive()
-                                malus = False
-
-                                st.write("**📍 Position Stratégique**")
-                                if rive_j != rive_c:
-                                    if helper.a_un_pont():
-                                        st.success("🌉 PONT : Traversée sécurisée")
-                                    else:
-                                        st.error("🌊 RIVIÈRE : Malus d'attaque (Force / 2)")
-                                        malus = True
-                                else:
-                                    st.info("⛺ Même rive : Pas de pénalité")
-
-                            puissance = helper.get_puissance()
-                            st.metric("⚔️ Votre Puissance Militaire", puissance)
-
-                            if puissance == 0:
-                                st.warning("⚠️ Vous n'avez pas d'armée ! Recrutez des soldats avant d'attaquer.")
+                            cibles = [p["nom"] for p in data["joueurs"] if p["nom"] != me["nom"] and p.get("vie", 0) > 0]
+                            if not cibles:
+                                st.info("Personne à attaquer.")
                             else:
-                                if st.button("⚔️ LANCER L'ASSAUT", type="primary", use_container_width=True):
-                                    # --- ANIMATION DE GUERRE ---
-                                    progress_text = "Mobilisation des troupes..."
-                                    my_bar = st.progress(0, text=progress_text)
-
-                                    phrases_guerre = [
-                                        "🎺 Les trompettes sonnent...",
-                                        "🏹 Les archers bandent leurs arcs...",
-                                        "🐎 La cavalerie charge !",
-                                        "⚔️ Choc des armées !",
-                                        "🔥 Les défenses tremblent..."
-                                    ]
-
-                                    for i in range(100):
-                                        time.sleep(0.02)  # Durée de l'animation (2 secondes total)
-                                        if i % 20 == 0:
-                                            my_bar.progress(i + 1, text=random.choice(phrases_guerre))
+                                cible_nom = st.selectbox("Choisir la cible", cibles)
+                                cible = next(p for p in data["joueurs"] if p["nom"] == cible_nom)
+    
+                                # Initialisation de la boite aux lettres si elle n'existe pas (sécurité)
+                                if "rapport_combat" not in cible:
+                                    cible["rapport_combat"] = []
+    
+                                st.write("---")
+                                col_info1, col_info2 = st.columns(2)
+                                with col_info1:
+                                    st.write(f"**🕵️ Renseignement sur {cible_nom}**")
+                                    st.write(f"- Tours visibles : {cible.get('nb_tours', 0)} 🗼")
+                                    st.write(f"- Or visible (estimé) : {cible.get('ecus', 0) // 10 * 10}+ 💰")
+    
+                                with col_info2:
+                                    rive_j = helper.get_rive()
+                                    rive_c = JoueurHelper(cible).get_rive()
+                                    malus = False
+    
+                                    st.write("**📍 Position Stratégique**")
+                                    if rive_j != rive_c:
+                                        if helper.a_un_pont():
+                                            st.success("🌉 PONT : Traversée sécurisée")
                                         else:
-                                            my_bar.progress(i + 1)
-                                    my_bar.empty()
-
-                                    # --- RÉSOLUTION ---
-                                    force_att, force_def, logs = simuler_combat(me, cible, malus)
-
-                                    st.divider()
-                                    c_res1, c_res2 = st.columns(2)
-                                    c_res1.markdown(f"<h2 style='text-align:center; color:blue'>{force_att}</h2>", unsafe_allow_html=True)
-                                    c_res1.caption("⚔️ Votre Force de Frappe")
-
-                                    c_res2.markdown(f"<h2 style='text-align:center; color:red'>{force_def}</h2>", unsafe_allow_html=True)
-                                    c_res2.caption(f"🛡️ Défense de {cible_nom}")
-
-                                    with st.expander("📜 Voir le détail du combat", expanded=False):
-                                        for l in logs:
-                                            st.write(l)
-
-                                    # GESTION VICTOIRE / DÉFAITE
-                                    if force_att > force_def:
-                                        gain_k = min(15, cible["kaplas"])
-                                        gain_e = min(40, cible["ecus"])
-
-                                        me["kaplas"] += gain_k
-                                        me["ecus"] += gain_e
-                                        cible["kaplas"] -= gain_k
-                                        cible["ecus"] -= gain_e
-
-                                        st.success(f"🎉 VICTOIRE ÉCRASANTE !")
-                                        st.write(f"💰 Vous avez pillé : **{gain_k} Kaplas** et **{gain_e} Ecus** !")
-
-                                        # Message pour la victime
-                                        msg_victime = f"⚔️ **ATTAQUE SUBIE** : {me['nom']} vous a attaqué et a GAGNÉ ! Vous avez perdu {gain_k} Kaplas et {gain_e} Ecus."
-                                        cible["rapport_combat"].append(msg_victime)
-
+                                            st.error("🌊 RIVIÈRE : Malus d'attaque (Force / 2)")
+                                            malus = True
                                     else:
-                                        pertes = int((force_def - force_att)/10)
-                                        pertes = max(5, pertes)
-                                        me["vie"] -= pertes
-
-                                        st.error(f"💀 DÉFAITE...")
-                                        st.write(f"🚑 Vos troupes se replient. Vous perdez **{pertes} PV** dans la bataille.")
-
-                                        # Message pour la victime
-                                        msg_victime = f"🛡️ **DÉFENSE HÉROÏQUE** : {me['nom']} vous a attaqué mais vos défenses ont tenu bon ! Il est reparti bredouille."
-                                        cible["rapport_combat"].append(msg_victime)
-
-                                    # Finalisation
-                                    me["action_du_jour"] = "GUERRE"
-                                    # Ne pas ajouter automatiquement aux joueurs prêts
-                                    # Le joueur doit lire les résultats et cliquer sur PRÊT manuellement
-
-                                    # Sauvegarder les logs du combat pour affichage post-guerre
-                                    me["dernier_combat_logs"] = logs
-
-                                    data["logs_guerre"].append(f"{me['nom']} a attaqué {cible['nom']}.")
-                                    save_data(data)
-                                    time.sleep(3)  # Temps pour lire le résultat
-                                    st.rerun()
-
-                # CAS B : Mode TRAVAIL EN COURS
-                elif act == "TRAVAIL_EN_COURS":
-                    st.info("🔨 Vous êtes en mode TRAVAIL. Vous pouvez continuer à travailler ou terminer votre journée.")
-
-                    stats = STATS_METIERS.get(me["metier"], STATS_METIERS["Fermier"])
-                    cout = stats["cout_fatigue"]
-
-                    st.subheader(f"⚒️ Travailler ({me['metier']})")
-                    st.write(f"Coût en fatigue : **{cout}** points")
-
-                    coeff = helper.get_prod_coeff(data["jour"])
-                    st.caption(f"Coefficient actuel : x{coeff:.2f}")
-
-                    # Estimation du gain de production (min / max)
-                    bonus_fixe = helper.get_bonus_fixe_production()
-                    gain_min = int(stats["base_min"] * coeff) + bonus_fixe
-                    gain_max = int(stats["base_max"] * coeff) + bonus_fixe
-
-                    if st.button("🔨 Travailler encore", type="primary"):
-                        if me["faim"] >= cout:
-                            me["faim"] -= cout
-
-                            gain = int(random.randint(stats["base_min"], stats["base_max"]) * coeff) + helper.get_bonus_fixe_production()
-
-                            if me["metier"] == "Fermier":
-                                me["stock_ble"] += gain
-                                st.toast(f"✅ Récolte : +{gain} Blé 🌾", icon="🌾")
-                            elif me["metier"] == "Bûcheron":
-                                me["kaplas"] += gain
-                                st.toast(f"✅ Production : +{gain} Kaplas 🧱", icon="🧱")
-                            elif me["metier"] == "Vigneron":
-                                if me["ecus"] >= 10:
-                                    me["ecus"] -= 10
-                                    me["stock_vin"].append(0)
-                                    st.toast("✅ Nouvelle cuvée lancée 🍷", icon="🍷")
+                                        st.info("⛺ Même rive : Pas de pénalité")
+    
+                                puissance = helper.get_puissance()
+                                st.metric("⚔️ Votre Puissance Militaire", puissance)
+    
+                                if puissance == 0:
+                                    st.warning("⚠️ Vous n'avez pas d'armée ! Recrutez des soldats avant d'attaquer.")
                                 else:
-                                    st.toast("❌ Pas assez d'or (10$ requis)", icon="💸")
-
-                            save_data(data)
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("😫 Trop fatigué ! Mangez d'abord.")
-
-                    st.caption(f"Gain estimé : entre {gain_min} et {gain_max} ressources")
-
+                                    # PHASE CANON (si possédé)
+                                    touches_canon = 0
+                                    if helper.a_objet("Canon"):
+                                        st.divider()
+                                        st.info("💣 **PHASE CANON** : Vous avez 3 essais pour renverser 5 figurines.")
+                                        touches_canon = st.number_input("Nombre de figurines tombées (0-5)", 0, 5, 0, key="canon_touches")
+                                        if touches_canon > 0:
+                                            st.success(f"Artillerie prête : +{touches_canon*20} Dégâts !")
+                                        st.divider()
+    
+                                    if st.button("⚔️ LANCER L'ASSAUT", type="primary", use_container_width=True):
+                                        # --- ANIMATION DE GUERRE ---
+                                        progress_text = "Mobilisation des troupes..."
+                                        my_bar = st.progress(0, text=progress_text)
+    
+                                        phrases_guerre = [
+                                            "🎺 Les trompettes sonnent...",
+                                            "🏹 Les archers bandent leurs arcs...",
+                                            "🐎 La cavalerie charge !",
+                                            "⚔️ Choc des armées !",
+                                            "🔥 Les défenses tremblent..."
+                                        ]
+    
+                                        for i in range(100):
+                                            time.sleep(0.02)
+                                            if i % 20 == 0:
+                                                my_bar.progress(i + 1, text=random.choice(phrases_guerre))
+                                            else:
+                                                my_bar.progress(i + 1)
+                                        my_bar.empty()
+    
+                                        # --- RÉSOLUTION ---
+                                        force_att, force_def, logs = simuler_combat(me, cible, malus, touches_canon=touches_canon)
+    
+                                        st.divider()
+                                        c_res1, c_res2 = st.columns(2)
+                                        c_res1.markdown(f"<h2 style='text-align:center; color:blue'>{force_att}</h2>", unsafe_allow_html=True)
+                                        c_res1.caption("⚔️ Votre Force de Frappe")
+    
+                                        c_res2.markdown(f"<h2 style='text-align:center; color:red'>{force_def}</h2>", unsafe_allow_html=True)
+                                        c_res2.caption(f"🛡️ Défense de {cible_nom}")
+    
+                                        with st.expander("📜 Voir le détail du combat", expanded=False):
+                                            for l in logs:
+                                                st.write(l)
+    
+                                        # GESTION VICTOIRE / DÉFAITE
+                                        if force_att > force_def:
+                                            gain_k = min(15, cible["kaplas"])
+                                            gain_e = min(40, cible["ecus"])
+    
+                                            me["kaplas"] += gain_k
+                                            me["ecus"] += gain_e
+                                            cible["kaplas"] -= gain_k
+                                            cible["ecus"] -= gain_e
+    
+                                            st.success(f"🎉 VICTOIRE ÉCRASANTE !")
+                                            st.write(f"💰 Vous avez pillé : **{gain_k} Kaplas** et **{gain_e} Ecus** !")
+    
+                                            # Message pour la victime
+                                            msg_victime = f"⚔️ **ATTAQUE SUBIE** : {me['nom']} vous a attaqué et a GAGNÉ ! Vous avez perdu {gain_k} Kaplas et {gain_e} Ecus."
+                                            cible["rapport_combat"].append(msg_victime)
+    
+                                            # Sauvegarder le résumé de l'attaque (pour l'attaquant)
+                                            me["last_attack_summary"] = {
+                                                "cible": cible_nom,
+                                                "force_att": force_att,
+                                                "force_def": force_def,
+                                                "victoire": True
+                                            }
+    
+                                            # Sauvegarder le résumé de la défense (pour le défenseur)
+                                            cible["last_defense_summary"] = {
+                                                "attaquant": me["nom"],
+                                                "force_att": force_att,
+                                                "force_def": force_def,
+                                                "defenseur_victoire": False
+                                            }
+    
+                                        else:
+                                            pertes = int((force_def - force_att)/10)
+                                            pertes = max(5, pertes)
+                                            me["vie"] -= pertes
+    
+                                            st.error(f"💀 DÉFAITE...")
+                                            st.write(f"🚑 Vos troupes se replient. Vous perdez **{pertes} PV** dans la bataille.")
+    
+                                            # Message pour la victime
+                                            msg_victime = f"🛡️ **DÉFENSE HÉROÏQUE** : {me['nom']} vous a attaqué mais vos défenses ont tenu bon ! Il est reparti bredouille."
+                                            cible["rapport_combat"].append(msg_victime)
+    
+                                            # Sauvegarder le résumé de l'attaque (pour l'attaquant)
+                                            me["last_attack_summary"] = {
+                                                "cible": cible_nom,
+                                                "force_att": force_att,
+                                                "force_def": force_def,
+                                                "victoire": False
+                                            }
+    
+                                            # Sauvegarder le résumé de la défense (pour le défenseur)
+                                            cible["last_defense_summary"] = {
+                                                "attaquant": me["nom"],
+                                                "force_att": force_att,
+                                                "force_def": force_def,
+                                                "defenseur_victoire": True
+                                            }
+    
+                                        # Finalisation
+                                        me["nb_actions_jour"] += 1
+                                        # Sauvegarder les logs du combat pour affichage post-guerre
+                                        me["dernier_combat_logs"] = logs
+    
+                                        data["logs_guerre"].append(f"{me['nom']} a attaqué {cible['nom']}.")
+                                        save_data(data)
+                                        time.sleep(3)
+                                        st.rerun()
+    
+                    # ============================================================
+                    # BOUTON GLOBAL : JE SUIS PRÊT
+                    # ============================================================
                     st.divider()
-                    if st.button("✅ TERMINER MA JOURNÉE", type="secondary", use_container_width=True):
-                        me["action_du_jour"] = "TERMINÉ"
+                    if st.button("✅ JE SUIS PRÊT (Finir mon tour)", type="primary", use_container_width=True):
                         if st.session_state.user_name not in data.get("joueurs_prets", []):
                             data["joueurs_prets"].append(st.session_state.user_name)
                         save_data(data)
                         st.rerun()
-
-                # CAS C : Mode VENTE EN COURS
-                elif act == "VENTE_EN_COURS":
-                    st.info("💰 Vous êtes en mode VENTE. Vous pouvez continuer à vendre ou terminer votre journée.")
-
-                    st.subheader("⚖️ Vendre vos ressources")
-
-                    if me["metier"] == "Fermier":
-                        st.write(f"Stock de Blé : **{me['stock_ble']}** 🌾")
-                        st.write(f"Cours actuel : **{data['cours_ble']}$** / unité")
-
-                        if me['stock_ble'] > 0:
-                            q = st.number_input("Quantité à vendre", 1, me['stock_ble'], 1, key="vente_ble_cont")
-                            bonus = 1.1 if helper.a_objet("Charrette") else 1.0
-                            gain_estime = int(q * data["cours_ble"] * bonus)
-                            st.caption(f"Gain estimé : {gain_estime}$")
-
-                            if st.button("💰 Vendre"):
-                                me["stock_ble"] -= q
-                                me["ecus"] += gain_estime
-                                st.toast(f"💰 Vendu {q} Blé pour {gain_estime}$", icon="💰")
+            elif phase == 3:
+                st.header("🛒 Phase 3 : Marché & Vie Sociale")
+    
+                tab1, tab2, tab3, tab4 = st.tabs(["🍖 Survie", "⚔️ Armée", "🏪 Objets", "👥 Vie Sociale"])
+    
+                with tab1:
+                    st.subheader("Nourriture & Soins")
+    
+                    col1, col2 = st.columns(2)
+    
+                    with col1:
+                        st.write("**Nourriture**")
+                        if st.button(f"🍞 Encas (+25 Faim) - {PRIX_REPAS_SIMPLE}$"):
+                            if me["ecus"] >= PRIX_REPAS_SIMPLE:
+                                me["ecus"] -= PRIX_REPAS_SIMPLE
+                                me["faim"] = min(me["faim_max"], me["faim"] + 25)
                                 save_data(data)
                                 st.rerun()
-                        else:
-                            st.warning("Stock épuisé")
-
-                    elif me["metier"] == "Bûcheron":
-                        st.write(f"Stock de Kaplas : **{me['kaplas']}** 🧱")
-                        cours_vente = max(1, data["cours_kapla"] - 2)
-                        st.write(f"Cours de vente : **{cours_vente}$** / unité")
-
-                        if me['kaplas'] > 0:
-                            q = st.number_input("Quantité à vendre", 1, me['kaplas'], 1, key="vente_kapla_cont")
-                            bonus = 1.1 if helper.a_objet("Charrette") else 1.0
-                            gain_estime = int(q * cours_vente * bonus)
-                            st.caption(f"Gain estimé : {gain_estime}$")
-
-                            if st.button("💰 Vendre"):
-                                me["kaplas"] -= q
-                                me["ecus"] += gain_estime
-                                st.toast(f"💰 Vendu {q} Kaplas pour {gain_estime}$", icon="💰")
+    
+                        if st.button(f"🍞 Pain (+5 MaxFaim) - {PRIX_PAIN_MAX}$"):
+                            if me["ecus"] >= PRIX_PAIN_MAX:
+                                me["ecus"] -= PRIX_PAIN_MAX
+                                me["faim_max"] += 5
+                                me["faim"] += 5
                                 save_data(data)
                                 st.rerun()
+    
+                        # POMME - Prix dynamique selon la faim manquante
+                        faim_manquante = me["faim_max"] - me["faim"]
+                        if faim_manquante > 0:
+                            # 1$ pour 5 points de faim manquants, arrondi à l'entier supérieur, minimum 1$
+                            prix_pomme = max(1, (faim_manquante + 4) // 5)
+                            if st.button(f"🍎 Pomme (Restaure toute la faim) - {prix_pomme}$"):
+                                if me["ecus"] >= prix_pomme:
+                                    me["ecus"] -= prix_pomme
+                                    me["faim"] = me["faim_max"]
+                                    save_data(data)
+                                    st.rerun()
+                                else:
+                                    st.error("💸 Pas assez d'argent")
                         else:
-                            st.warning("Stock épuisé")
-
-                    elif me["metier"] == "Vigneron" and me["stock_vin"]:
-                        st.write("🍷 **Vos cuvées de vin**")
-
-                        for idx, age in enumerate(me["stock_vin"]):
-                            prix = int(1.2 * helper.get_prod_coeff(data["jour"]) * (age ** 2))
-                            prix = max(5, prix)
+                            st.success("🍎 Pomme : Faim déjà au maximum")
+    
+                    with col2:
+                        st.write("**Soins**")
+                        if st.button(f"🧪 Potion (+10 PV) - {PRIX_POTION}$"):
+                            if me["ecus"] >= PRIX_POTION:
+                                me["ecus"] -= PRIX_POTION
+                                me["vie"] = min(me["vie_max"], me["vie"] + 10)
+                                save_data(data)
+                                st.rerun()
+    
+                with tab2:
+                    st.subheader("Recrutement militaire")
+    
+                    # Calcul des chevaux libres
+                    nb_chevaux_total = len([o for o in me["objets_reels"] if o.get("nom") == "Cheval"])
+                    charrette_possedee = 1 if helper.a_objet("Charrette") else 0
+                    chevaux_libres = nb_chevaux_total - charrette_possedee
+    
+                    st.info(f"🐎 Chevaux disponibles: {chevaux_libres} / {nb_chevaux_total} (Charrette consomme: {charrette_possedee})")
+    
+                    for nom_u, stats in STATS_COMBAT.items():
+                        col1, col2 = st.columns([3, 1])
+                        col1.write(f"{stats['icon']} **{nom_u}** - {stats['desc']} - Force: {stats['base']}")
+    
+                        # Condition spéciale pour Chevalier
+                        if nom_u == "Chevalier":
+                            if chevaux_libres <= 0:
+                                col2.error("Pas de🐎")
+                                col1.caption("⚠️ Nécessite 1 Cheval libre")
+                            elif col2.button(f"{stats['cout']}$", key=f"rec_{nom_u}"):
+                                if me["ecus"] >= stats['cout']:
+                                    me["ecus"] -= stats['cout']
+                                    me["armee"][nom_u] += 1
+                                    save_data(data)
+                                    st.rerun()
+                                else:
+                                    st.error("💸 Pas assez d'argent")
+                        else:
+                            # Autres unités (Soldat, Archer)
+                            if col2.button(f"{stats['cout']}$", key=f"rec_{nom_u}"):
+                                if me["ecus"] >= stats['cout']:
+                                    me["ecus"] -= stats['cout']
+                                    me["armee"][nom_u] += 1
+                                    save_data(data)
+                                    st.rerun()
+                                else:
+                                    st.error("💸 Pas assez d'argent")
+    
+                with tab3:
+                    st.subheader("Boutique d'objets")
+    
+                    # CHOIX DESTINATION POUR ÉQUIPEMENT DE COMBAT
+                    type_achat_combat = st.radio(
+                        "🎯 Destination de l'achat (Armes/Armures/Boucliers)",
+                        ["📦 Stock Armée", "👑 Mon Personnage (Chef)"],
+                        horizontal=True,
+                        key="radio_destination"
+                    )
+    
+                    st.divider()
+    
+                    for nom_obj, info in CATALOGUE_OBJETS.items():
+                        deja_possede = helper.a_objet(nom_obj)
+                        is_stackable = info.get("stackable", False)
+                        type_obj = info.get("type")
+    
+                        # Déterminer si c'est un équipement de combat
+                        is_combat_equip = type_obj in ["Arme", "Armure", "Bouclier"]
+    
+                        # On affiche le bouton d'achat si l'objet n'est pas possédé OU s'il est cumulable
+                        if deja_possede and not is_stackable and not is_combat_equip:
+                            st.success(f"✅ {info['icon']} {nom_obj} - Déjà possédé")
+                        else:
                             col1, col2 = st.columns([3, 1])
-                            col1.write(f"Bouteille #{idx+1} - Âge: {age} jours - Valeur: {prix}$")
-                            if col2.button(f"Vendre", key=f"vin_cont_{idx}"):
-                                me["stock_vin"].pop(idx)
-                                me["ecus"] += prix
+                            titre = f"{info['icon']} **{nom_obj}** - {info['desc']}"
+    
+                            # Si cumulable et déjà possédé, on montre combien on en a
+                            if is_stackable and deja_possede:
+                                count = len([o for o in me["objets_reels"] if o["nom"] == nom_obj])
+                                titre += f" (Possédé: {count})"
+    
+                            # Indication de destination pour équipements de combat
+                            if is_combat_equip:
+                                if "Chef" in type_achat_combat:
+                                    titre += " 👑"
+                                else:
+                                    titre += " 📦"
+    
+                            col1.write(titre)
+                            col1.caption(info.get('help', ''))
+                            if col2.button(f"{info['prix']}$", key=f"obj_{nom_obj}"):
+                                # Vérification spéciale pour Charrette : nécessite un Cheval
+                                if nom_obj == "Charrette" and not helper.a_objet("Cheval"):
+                                    st.error("❌ Vous devez posséder un Cheval pour acheter une Charrette !")
+                                elif me["ecus"] >= info['prix']:
+                                    me["ecus"] -= info['prix']
+    
+                                    # Si c'est un équipement de combat ET destiné au Chef
+                                    if is_combat_equip and "Chef" in type_achat_combat:
+                                        # Équiper le chef automatiquement dans le bon slot
+                                        equipement = me.get("equipement_joueur", {})
+                                        if not equipement:
+                                            equipement = {"Tete": None, "Torse": None, "Jambes": None,
+                                                         "MainG": None, "MainD": None, "Accessoire": None}
+                                            me["equipement_joueur"] = equipement
+    
+                                        # Déterminer le slot selon le type
+                                        slot_cible = None
+                                        if type_obj == "Armure":
+                                            slot_cible = "Torse"
+                                        elif type_obj == "Bouclier":
+                                            slot_cible = "MainG"
+                                        elif type_obj == "Arme":
+                                            slot_cible = "MainD"
+    
+                                        # Créer l'objet équipement
+                                        item_data = {"nom": nom_obj, "type": type_obj}
+                                        if "bonus_att" in info:
+                                            item_data["bonus_att"] = info["bonus_att"]
+                                        if "bonus_def" in info:
+                                            item_data["bonus_def"] = info["bonus_def"]
+    
+                                        # Si le slot est déjà occupé, envoyer l'ancien équipement au stock
+                                        if slot_cible and equipement.get(slot_cible):
+                                            ancien = equipement[slot_cible]
+                                            me["objets_reels"].append(ancien)
+                                            st.toast(f"⚠️ {ancien['nom']} renvoyé au stock", icon="📦")
+    
+                                        # Équiper le nouvel item
+                                        if slot_cible:
+                                            equipement[slot_cible] = item_data
+                                            st.toast(f"✅ {nom_obj} équipé sur {slot_cible}", icon="👑")
+                                        else:
+                                            # Fallback : ajouter au stock si pas de slot déterminé
+                                            me["objets_reels"].append({"nom": nom_obj, "type": info['type'], "valeur": info['prix']})
+    
+                                    else:
+                                        # Achat normal pour le stock d'armée
+                                        me["objets_reels"].append({"nom": nom_obj, "type": info['type'], "valeur": info['prix']})
+    
+                                    save_data(data)
+                                    st.rerun()
+    
+                    st.divider()
+    
+                    st.subheader("Éléments de construction / Décoration")
+                    choix_type = st.selectbox("Type", ["Élément de construction", "Décoration"])
+                    nom_custom = st.text_input("Nom de l'objet", "Monument")
+                    prix_custom = st.number_input("Prix à investir", 0, 500, 50)
+    
+                    if st.button("Acheter"):
+                        if me["ecus"] >= prix_custom:
+                            me["ecus"] -= prix_custom
+                            me["objets_reels"].append({"nom": nom_custom, "type": choix_type, "valeur": prix_custom})
+                            save_data(data)
+                            st.rerun()
+    
+                    # SECTION ACHAT KAPLAS (Sauf Bucheron)
+                    if me["metier"] != "Bûcheron":
+                        st.divider()
+                        st.subheader("🧱 Achat de Matériaux")
+                        prix_k = data["cours_kapla"]
+                        st.write(f"Cours du Kapla : **{prix_k}$** / unité")
+    
+                        # Info Compas
+                        has_compas = helper.a_objet("Compas")
+                        if has_compas:
+                            # Init buffer s'il n'existe pas
+                            current_buffer = me.get("compas_buffer", 0)
+                            st.info(f"🧭 **Compas actif** : 1 Kapla offert tous les 5 achetés.")
+                            st.caption(f"Progression actuelle : {current_buffer}/5")
+    
+                        q_achat = st.number_input("Acheter Kaplas", 0, 100, 0, key="buy_k")
+                        cout_k = q_achat * prix_k
+    
+                        if q_achat > 0:
+                            st.caption(f"Coût total : {cout_k}$")
+                            if st.button(f"Acheter {q_achat} Kaplas"):
+                                if me["ecus"] >= cout_k:
+                                    me["ecus"] -= cout_k
+    
+                                    bonus_k = 0
+                                    if has_compas:
+                                        # Logique cumulative
+                                        current_buffer = me.get("compas_buffer", 0)
+                                        total_temp = current_buffer + q_achat
+    
+                                        bonus_k = total_temp // 5        # Nombre de bonus gagnés
+                                        new_buffer = total_temp % 5      # Ce qu'il reste pour la prochaine fois
+    
+                                        me["compas_buffer"] = new_buffer
+    
+                                        if bonus_k > 0:
+                                            st.toast(f"🧭 Bonus Compas : +{bonus_k} Kaplas gratuits !", icon="🎁")
+    
+                                    total_recu = q_achat + bonus_k
+                                    me["kaplas"] += total_recu
+    
+                                    save_data(data)
+                                    st.rerun()
+                                else:
+                                    st.error("Pas assez d'argent.")
+    
+                    st.divider()
+    
+                    st.subheader("🍖 Vente de gibier")
+                    cours = data["cours_gibier"]
+                    gibier = me.get("stock_gibier", {})
+    
+                    # Affichage bonus Couteau
+                    has_couteau = helper.a_objet("Couteau")
+                    if has_couteau:
+                        st.success("🔪 BONUS COUTEAU : +30% sur la viande !")
+    
+                    for taille, icon in ICON_GIBIER.items():
+                        if gibier.get(taille, 0) > 0:
+                            prix_base = cours[taille]
+                            bonus_couteau = 1.3 if has_couteau else 1.0
+                            gain_total = int(prix_base * bonus_couteau)
+    
+                            col1, col2 = st.columns([3, 1])
+                            col1.write(f"{icon} **{taille}** - Stock: {gibier[taille]}")
+                            col1.caption(f"Prix de base: {prix_base}$ {'× 1.3 (Couteau)' if has_couteau else ''}")
+                            col1.markdown(f"<h3 style='color: green;'>💰 Gain: {gain_total}$</h3>", unsafe_allow_html=True)
+    
+                            if col2.button(f"Vendre", key=f"gib_{taille}"):
+                                gibier[taille] -= 1
+                                me["ecus"] += gain_total
                                 save_data(data)
                                 st.rerun()
-
-                    st.divider()
-                    if st.button("✅ TERMINER MA JOURNÉE", type="secondary", use_container_width=True):
-                        me["action_du_jour"] = "TERMINÉ"
-                        if st.session_state.user_name not in data.get("joueurs_prets", []):
-                            data["joueurs_prets"].append(st.session_state.user_name)
-                        save_data(data)
-                        st.rerun()
-
-                # CAS D : FIN DE GUERRE (Post-combat)
-                elif act == "GUERRE":
-                    st.success("⚔️ Votre attaque est terminée !")
-                    st.info("📖 Prenez le temps de lire les résultats ci-dessous.")
-
-                    # Affichage des logs du dernier combat (si disponibles)
-                    logs_combat = me.get("dernier_combat_logs", [])
-                    if logs_combat:
-                        with st.expander("📜 Revoir le détail du combat", expanded=False):
-                            for log in logs_combat:
-                                st.write(log)
-
-                    st.divider()
-                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_guerre"):
-                        me["action_du_jour"] = "TERMINÉ"
-                        if st.session_state.user_name not in data.get("joueurs_prets", []):
-                            data["joueurs_prets"].append(st.session_state.user_name)
-                        save_data(data)
-                        st.rerun()
-
-                # CAS E : GESTION (Achat terrain/ouvrier terminé)
-                elif act == "GESTION":
-                    st.success("💼 Votre gestion est terminée !")
-                    st.info("Vous avez acheté un terrain ou recruté un ouvrier. Cliquez sur PRÊT pour continuer.")
-
-                    st.divider()
-                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_gestion"):
-                        me["action_du_jour"] = "TERMINÉ"
-                        if st.session_state.user_name not in data.get("joueurs_prets", []):
-                            data["joueurs_prets"].append(st.session_state.user_name)
-                        save_data(data)
-                        st.rerun()
-
-        elif phase == 3:
-            st.header("🛒 Phase 3 : Marché & Vie Sociale")
-
-            tab1, tab2, tab3, tab4 = st.tabs(["🍖 Survie", "⚔️ Armée", "🏪 Objets", "👥 Vie Sociale"])
-
-            with tab1:
-                st.subheader("Nourriture & Soins")
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.write("**Nourriture**")
-                    if st.button(f"🍞 Encas (+25 Faim) - {PRIX_REPAS_SIMPLE}$"):
-                        if me["ecus"] >= PRIX_REPAS_SIMPLE:
-                            me["ecus"] -= PRIX_REPAS_SIMPLE
-                            me["faim"] = min(me["faim_max"], me["faim"] + 25)
+    
+                    if me.get("stock_champignons", 0) > 0:
+                        col1, col2 = st.columns([3, 1])
+                        col1.write(f"🍄 Champignons - Stock: {me['stock_champignons']} - Prix: {PRIX_CHAMPIGNON}$/u")
+                        if col2.button(f"Vendre", key="champ"):
+                            me["stock_champignons"] -= 1
+                            me["ecus"] += PRIX_CHAMPIGNON
                             save_data(data)
                             st.rerun()
-
-                    if st.button(f"🍞 Pain (+5 MaxFaim) - {PRIX_PAIN_MAX}$"):
-                        if me["ecus"] >= PRIX_PAIN_MAX:
-                            me["ecus"] -= PRIX_PAIN_MAX
-                            me["faim_max"] += 5
-                            me["faim"] += 5
-                            save_data(data)
-                            st.rerun()
-
-                    # POMME - Prix dynamique selon la faim manquante
-                    faim_manquante = me["faim_max"] - me["faim"]
-                    if faim_manquante > 0:
-                        # 1$ pour 5 points de faim manquants, arrondi à l'entier supérieur, minimum 1$
-                        prix_pomme = max(1, (faim_manquante + 4) // 5)
-                        if st.button(f"🍎 Pomme (Restaure toute la faim) - {prix_pomme}$"):
-                            if me["ecus"] >= prix_pomme:
-                                me["ecus"] -= prix_pomme
-                                me["faim"] = me["faim_max"]
+    
+                with tab4:
+                    st.subheader("👥 Vie sociale")
+                    if not me.get("conjoint"):
+                        st.write("Vous êtes célibataire. Se marier apporte un bonus de production croissant.")
+                        if st.button(f"💍 Se marier (-{PRIX_MARIAGE}$)"):
+                            if me["ecus"] >= PRIX_MARIAGE:
+                                me["ecus"] -= PRIX_MARIAGE
+                                me["conjoint"] = generer_conjoint(data["joueurs"])
                                 save_data(data)
                                 st.rerun()
                             else:
                                 st.error("💸 Pas assez d'argent")
                     else:
-                        st.success("🍎 Pomme : Faim déjà au maximum")
-
-                with col2:
-                    st.write("**Soins**")
-                    if st.button(f"🧪 Potion (+10 PV) - {PRIX_POTION}$"):
-                        if me["ecus"] >= PRIX_POTION:
-                            me["ecus"] -= PRIX_POTION
-                            me["vie"] = min(me["vie_max"], me["vie"] + 10)
+                        conj = me["conjoint"]
+                        st.success(f"💑 Marié(e) avec {conj['nom']} depuis {conj['jours_mariage']} jours")
+                        st.caption(f"Enfants: {me.get('enfants', 0)} 👶")
+    
+            elif phase == 4:
+                st.header("🏗️ Phase 4 : Construction (Déclaration)")
+                st.info("Déclarez ici ce que vous avez construit physiquement sur la table.")
+    
+                c1, c2, c3 = st.columns(3)
+    
+                with c1:
+                    st.subheader("🏠 Toits")
+                    current_toits = me.get("nb_toits", 0)
+                    # Input déclaratif
+                    new_toits = st.number_input("Nombre de toits total", min_value=0, value=current_toits, key="dec_toits")
+                    if new_toits != current_toits:
+                        me["nb_toits"] = new_toits
+                        save_data(data)
+                        st.rerun()
+    
+                with c2:
+                    st.subheader("🗼 Tours")
+                    current_tours = me.get("nb_tours", 0)
+                    nb_archers = me["armee"].get("Archer", 0)
+    
+                    st.caption(f"Archers disponibles : {nb_archers}")
+                    st.caption("Règle : 1 Tour nécessite 1 Archer (non consommé)")
+    
+                    new_tours = st.number_input("Nombre de tours total", min_value=0, max_value=nb_archers, value=min(current_tours, nb_archers), key="dec_tours")
+    
+                    if new_tours != current_tours:
+                        me["nb_tours"] = new_tours
+                        save_data(data)
+                        st.rerun()
+    
+                with c3:
+                    st.subheader("🌉 Pont")
+                    pont = st.checkbox("Pont construit (IRL)", value=me.get("pont_construit", False))
+                    if pont != me.get("pont_construit", False):
+                        me["pont_construit"] = pont
+                        save_data(data)
+                        st.rerun()
+    
+                st.divider()
+    
+                st.subheader("🏰 Fortifications")
+                col_a, col_b = st.columns(2)
+    
+                with col_a:
+                    # 1. ENCEINTE (Pour la Guerre)
+                    enceinte = me.get("def_physique", {}).get("enceinte", False)
+                    st.write("**🛡️ Enceinte Fortifiée**")
+                    st.caption("Bonus : +50 Défense (Guerre)")
+    
+                    if st.checkbox("Construire Enceinte", value=enceinte, key="enceinte_war"):
+                        if not enceinte:
+                            me["def_physique"]["enceinte"] = True
                             save_data(data)
                             st.rerun()
-
-            with tab2:
-                st.subheader("Recrutement militaire")
-
-                for nom_u, stats in STATS_COMBAT.items():
-                    col1, col2 = st.columns([3, 1])
-                    col1.write(f"{stats['icon']} **{nom_u}** - {stats['desc']} - Force: {stats['base']}")
-                    if col2.button(f"{stats['cout']}$", key=f"rec_{nom_u}"):
-                        if me["ecus"] >= stats['cout']:
-                            me["ecus"] -= stats['cout']
-                            me["armee"][nom_u] += 1
-                            save_data(data)
-                            st.rerun()
-
-            with tab3:
-                st.subheader("Boutique d'objets")
-
-                for nom_obj, info in CATALOGUE_OBJETS.items():
-                    deja_possede = helper.a_objet(nom_obj)
-                    is_stackable = info.get("stackable", False)
-
-                    # On affiche le bouton d'achat si l'objet n'est pas possédé OU s'il est cumulable
-                    if deja_possede and not is_stackable:
-                        st.success(f"✅ {info['icon']} {nom_obj} - Déjà possédé")
                     else:
-                        col1, col2 = st.columns([3, 1])
-                        titre = f"{info['icon']} **{nom_obj}** - {info['desc']}"
-
-                        # Si cumulable et déjà possédé, on montre combien on en a
-                        if is_stackable and deja_possede:
-                            count = len([o for o in me["objets_reels"] if o["nom"] == nom_obj])
-                            titre += f" (Possédé: {count})"
-
-                        col1.write(titre)
-                        col1.caption(info.get('help', ''))
-                        if col2.button(f"{info['prix']}$", key=f"obj_{nom_obj}"):
-                            if me["ecus"] >= info['prix']:
-                                me["ecus"] -= info['prix']
-                                me["objets_reels"].append({"nom": nom_obj, "type": info['type'], "valeur": info['prix']})
-                                save_data(data)
-                                st.rerun()
-
-                st.divider()
-
-                st.subheader("Éléments de construction / Décoration")
-                choix_type = st.selectbox("Type", ["Élément de construction", "Décoration"])
-                nom_custom = st.text_input("Nom de l'objet", "Monument")
-                prix_custom = st.number_input("Prix à investir", 0, 500, 50)
-
-                if st.button("Acheter"):
-                    if me["ecus"] >= prix_custom:
-                        me["ecus"] -= prix_custom
-                        me["objets_reels"].append({"nom": nom_custom, "type": choix_type, "valeur": prix_custom})
-                        save_data(data)
-                        st.rerun()
-
-                st.divider()
-
-                st.subheader("🍖 Vente de gibier")
-                cours = data["cours_gibier"]
-                gibier = me.get("stock_gibier", {})
-
-                for taille, icon in ICON_GIBIER.items():
-                    if gibier.get(taille, 0) > 0:
-                        col1, col2 = st.columns([3, 1])
-                        col1.write(f"{icon} {taille} - Stock: {gibier[taille]} - Prix: {cours[taille]}$/u")
-                        if col2.button(f"Vendre", key=f"gib_{taille}"):
-                            gibier[taille] -= 1
-                            me["ecus"] += cours[taille]
+                        if enceinte:
+                            me["def_physique"]["enceinte"] = False
                             save_data(data)
                             st.rerun()
-
-                if me.get("stock_champignons", 0) > 0:
-                    col1, col2 = st.columns([3, 1])
-                    col1.write(f"🍄 Champignons - Stock: {me['stock_champignons']} - Prix: {PRIX_CHAMPIGNON}$/u")
-                    if col2.button(f"Vendre", key="champ"):
-                        me["stock_champignons"] -= 1
-                        me["ecus"] += PRIX_CHAMPIGNON
-                        save_data(data)
-                        st.rerun()
-
-            with tab4:
-                st.subheader("👥 Vie sociale")
-                if not me.get("conjoint"):
-                    st.write("Vous êtes célibataire. Se marier apporte un bonus de production croissant.")
-                    if st.button(f"💍 Se marier (-{PRIX_MARIAGE}$)"):
-                        if me["ecus"] >= PRIX_MARIAGE:
-                            me["ecus"] -= PRIX_MARIAGE
-                            me["conjoint"] = generer_conjoint(data["joueurs"])
+    
+                with col_b:
+                    # 2. PROTECTION CULTURES (Pour l'Événement Vol)
+                    prot_cult = me.get("def_physique", {}).get("protection_cultures", False)
+                    st.write("**🌾 Protection Cultures**")
+                    st.caption("Requis : Mur de 1 Kapla autour des champs (IRL)")
+    
+                    if st.checkbox("Champs protégés (IRL)", value=prot_cult, key="prot_cult"):
+                        if not prot_cult:
+                            me["def_physique"]["protection_cultures"] = True
                             save_data(data)
                             st.rerun()
-                        else:
-                            st.error("💸 Pas assez d'argent")
-                else:
-                    conj = me["conjoint"]
-                    st.success(f"💑 Marié(e) avec {conj['nom']} depuis {conj['jours_mariage']} jours")
-                    st.caption(f"Enfants: {me.get('enfants', 0)} 👶")
-
-        elif phase == 4:
-            st.header("🏗️ Phase 4 : Construction")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.write("**🏠 Toits**")
-                st.metric("Toits actuels", me.get("nb_toits", 0))
-                nb = st.number_input("Nombre de toits", 0, 10, 0, key="toits")
-                if st.button("Construire Toits"):
-                    cout = nb * 2
-                    if me["kaplas"] >= cout:
-                        me["kaplas"] -= cout
-                        me["nb_toits"] += nb
+                    else:
+                        if prot_cult:
+                            me["def_physique"]["protection_cultures"] = False
+                            save_data(data)
+                            st.rerun()
+    
+                # La porte reste en dessous ou à côté si tu veux, ou tu l'ajoutes à la suite
+                porte = me.get("def_physique", {}).get("porte", False)
+                if st.checkbox("Porte renforcée (+20 défense)", value=porte, key="porte"):
+                    if not porte:
+                        me["def_physique"]["porte"] = True
                         save_data(data)
                         st.rerun()
-
-            with col2:
-                st.write("**🗼 Tours**")
-                st.metric("Tours actuelles", me.get("nb_tours", 0))
-                nb_t = st.number_input("Nombre de tours", 0, 5, 0, key="tours")
-                if st.button("Construire Tours"):
-                    cout = nb_t * 2
-                    if me["kaplas"] >= cout and me["armee"]["Archer"] >= nb_t:
-                        me["kaplas"] -= cout
-                        me["armee"]["Archer"] -= nb_t
-                        me["nb_tours"] += nb_t
-                        save_data(data)
-                        st.rerun()
-
-            with col3:
-                st.write("**🌉 Pont**")
-                pont_actuel = me.get("pont_construit", False)
-                pont = st.checkbox("Construire un pont", value=pont_actuel, key="pont")
-                if pont != pont_actuel:
-                    me["pont_construit"] = pont
+                elif porte:
+                    me["def_physique"]["porte"] = False
                     save_data(data)
                     st.rerun()
-
-            st.divider()
-
-            st.subheader("🏰 Fortifications")
-            col_a, col_b = st.columns(2)
-
-            with col_a:
-                # 1. ENCEINTE (Pour la Guerre)
-                enceinte = me.get("def_physique", {}).get("enceinte", False)
-                st.write("**🛡️ Enceinte Fortifiée**")
-                st.caption("Bonus : +50 Défense (Guerre)")
-
-                if st.checkbox("Construire Enceinte", value=enceinte, key="enceinte_war"):
-                    if not enceinte:
-                        me["def_physique"]["enceinte"] = True
+    
+            # BOUTON PRÊT EN BAS
+            if phase > 0:
+                st.divider()
+                est_pret = st.session_state.user_name in data.get("joueurs_prets", [])
+    
+                if not est_pret:
+                    # Le joueur n'est pas encore prêt
+                    if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_footer"):
+                        if st.session_state.user_name not in data.get("joueurs_prets", []):
+                            data["joueurs_prets"].append(st.session_state.user_name)
+                        st.session_state.auto_refresh = True
                         save_data(data)
                         st.rerun()
                 else:
-                    if enceinte:
-                        me["def_physique"]["enceinte"] = False
-                        save_data(data)
-                        st.rerun()
-
-            with col_b:
-                # 2. PROTECTION CULTURES (Pour l'Événement Vol)
-                prot_cult = me.get("def_physique", {}).get("protection_cultures", False)
-                st.write("**🌾 Protection Cultures**")
-                st.caption("Requis : Mur de 1 Kapla autour des champs (IRL)")
-
-                if st.checkbox("Champs protégés (IRL)", value=prot_cult, key="prot_cult"):
-                    if not prot_cult:
-                        me["def_physique"]["protection_cultures"] = True
-                        save_data(data)
-                        st.rerun()
-                else:
-                    if prot_cult:
-                        me["def_physique"]["protection_cultures"] = False
-                        save_data(data)
-                        st.rerun()
-
-            # La porte reste en dessous ou à côté si tu veux, ou tu l'ajoutes à la suite
-            porte = me.get("def_physique", {}).get("porte", False)
-            if st.checkbox("Porte renforcée (+20 défense)", value=porte, key="porte"):
-                if not porte:
-                    me["def_physique"]["porte"] = True
-                    save_data(data)
+                    # Le joueur est déjà prêt -> On lance la boucle d'attente
+                    st.success("✅ PRÊT - En attente des autres joueurs...")
+                    st.caption(f"Joueurs prêts: {len(data.get('joueurs_prets', []))}/{len(data['joueurs'])}")
+    
+                    # Auto-refresh toutes les 2 secondes pour voir rapidement le timer du maître
+                    time.sleep(2)
                     st.rerun()
-            elif porte:
-                me["def_physique"]["porte"] = False
-                save_data(data)
-                st.rerun()
-
-        # BOUTON PRÊT EN BAS
-        if phase > 0:
-            st.divider()
-            est_pret = st.session_state.user_name in data.get("joueurs_prets", [])
-
-            if not est_pret:
-                # Le joueur n'est pas encore prêt
-                if st.button("✅ JE SUIS PRÊT", type="primary", use_container_width=True, key="btn_pret_footer"):
-                    if st.session_state.user_name not in data.get("joueurs_prets", []):
-                        data["joueurs_prets"].append(st.session_state.user_name)
-                    st.session_state.auto_refresh = True
-                    save_data(data)
-                    st.rerun()
-            else:
-                # Le joueur est déjà prêt -> On lance la boucle d'attente
-                st.success("✅ PRÊT - En attente des autres joueurs...")
-                st.caption(f"Joueurs prêts: {len(data.get('joueurs_prets', []))}/{len(data['joueurs'])}")
-
-                # --- CORRECTION : AJOUT DU REFRESH ---
-                time.sleep(2)
-                st.rerun()
