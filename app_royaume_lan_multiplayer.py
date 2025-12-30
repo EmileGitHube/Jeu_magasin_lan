@@ -1536,26 +1536,6 @@ elif st.session_state.user_role == "PLAYER":
                 st.metric("Force Totale", total_att)
                 st.caption(f"Armée: {puissance_att} | Équipement Troupes: +{bonus_troupes} | Chef: +{bonus_chef}")
 
-                # Liste des troupes
-                st.divider()
-                st.write("**🗡️ Troupes de Combat**")
-    
-                if len(troupes) > 0:
-                    for troupe in troupes:
-                        icon = STATS_COMBAT[troupe["type"]]["icon"]
-                        eq_text = []
-                        for slot, item_name in troupe["equipement"].items():
-                            if item_name:
-                                bonus = CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
-                                eq_text.append(f"{item_name} +{bonus}")
-
-                        if eq_text:
-                            st.success(f"{icon} {troupe['nom']}: {', '.join(eq_text)}")
-                        else:
-                            st.warning(f"{icon} {troupe['nom']}: Sans équipement")
-                else:
-                    st.info("Aucune troupe recrutée")
-    
                 # Dernière attaque effectuée
                 last_att = me.get("last_attack_summary")
                 if last_att:
@@ -1590,27 +1570,7 @@ elif st.session_state.user_role == "PLAYER":
                         bonus_chef_def += CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
 
                 st.caption(f"Armée: {def_armee} | Équipement Troupes: +{bonus_armor} | Chef: +{bonus_chef_def}")
-    
-                # Liste des soldats équipés/non équipés (défense)
-                st.divider()
-                st.write("**🛡️ Troupes Défensives**")
-    
-                if len(troupes_def) > 0:
-                    for troupe in troupes_def:
-                        icon = STATS_COMBAT[troupe["type"]]["icon"]
-                        eq_text = []
-                        for slot, item_name in troupe["equipement"].items():
-                            if item_name:
-                                bonus = CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
-                                eq_text.append(f"{item_name} +{bonus}")
 
-                        if eq_text:
-                            st.success(f"{icon} {troupe['nom']}: {', '.join(eq_text)}")
-                        else:
-                            st.warning(f"{icon} {troupe['nom']}: Sans équipement")
-                else:
-                    st.info("Aucune troupe recrutée")
-    
                 # Dernière défense
                 last_def = me.get("last_defense_summary")
                 if last_def:
@@ -1621,7 +1581,52 @@ elif st.session_state.user_role == "PLAYER":
                     st.write(f"🛡️ Ma défense: {last_def.get('force_def', 0)}")
                     result = "🛡️ Repoussé" if last_def.get('defenseur_victoire') else "💀 Pillé"
                     st.write(f"Résultat: {result}")
-    
+
+            # ============================================================
+            # SECTION LA CASERNE (Gestion Complète des Troupes)
+            # ============================================================
+            st.divider()
+            st.subheader("🎖️ La Caserne (Gestion des Troupes)")
+
+            troupes_caserne = me.get("troupes", [])
+            if not troupes_caserne:
+                st.info("Aucune troupe recrutée. Rendez-vous au Marché pour recruter!")
+            else:
+                for i, troupe in enumerate(troupes_caserne):
+                    # Cadre pour chaque soldat
+                    with st.container(border=True):
+                        c_nom, c_arme, c_bouclier, c_armure = st.columns([2, 1, 1, 1])
+
+                        # 1. Renommage
+                        with c_nom:
+                            new_name = st.text_input(f"Identité ({troupe['type']})", value=troupe['nom'], key=f"name_caserne_{i}")
+                            if new_name != troupe['nom']:
+                                troupe['nom'] = new_name
+                                save_data(data)
+
+                        # 2. Gestion des Slots
+                        # Fonction helper locale pour afficher/vendre un slot
+                        def gestion_slot(col, slot_name, icon_vide, icon_plein):
+                            with col:
+                                st.caption(f"{icon_plein} {slot_name}")
+                                item_name = troupe["equipement"].get(slot_name)
+                                if item_name:
+                                    st.write(f"**{item_name}**")
+                                    # Récup prix pour revente
+                                    prix_base = CATALOGUE_OBJETS.get(item_name, {}).get("prix", 0)
+                                    if st.button(f"💲 Vendre ({int(prix_base//2)}$)", key=f"sell_{i}_{slot_name}"):
+                                        me["ecus"] += int(prix_base // 2)
+                                        troupe["equipement"][slot_name] = None
+                                        st.toast(f"♻️ {item_name} vendu !")
+                                        save_data(data)
+                                        st.rerun()
+                                else:
+                                    st.caption(f"{icon_vide} Vide")
+
+                        gestion_slot(c_arme, "Arme", "👊", "🗡️")
+                        gestion_slot(c_bouclier, "Bouclier", "🚫", "🛡️")
+                        gestion_slot(c_armure, "Armure", "👕", "👕")
+
             # SECTION INVENTAIRE & REVENTE
             st.divider()
             st.subheader("📦 Inventaire & Revente")
@@ -2518,28 +2523,6 @@ elif st.session_state.user_role == "PLAYER":
                                 else:
                                     st.error("💸 Pas assez d'argent")
 
-                    # INTERFACE CASERNE (Gestion des Troupes)
-                    st.divider()
-                    st.subheader("🎖️ Caserne & Troupes")
-
-                    if not me["troupes"]:
-                        st.info("Aucune troupe recrutée. Utilisez le recrutement ci-dessus!")
-                    else:
-                        for i, troupe in enumerate(me["troupes"]):
-                            with st.expander(f"{STATS_COMBAT[troupe['type']]['icon']} {troupe['nom']}", expanded=False):
-                                # Renommage
-                                new_name = st.text_input("Nom", troupe['nom'], key=f"rename_{i}")
-                                if new_name != troupe['nom']:
-                                    troupe['nom'] = new_name
-                                    save_data(data)
-
-                                # Affichage Slots
-                                c1, c2, c3 = st.columns(3)
-                                eq = troupe["equipement"]
-                                c1.info(f"🗡️ Arme: {eq['Arme'] or 'Poings'}")
-                                c2.info(f"🛡️ Bouclier: {eq['Bouclier'] or 'Aucun'}")
-                                c3.info(f"👕 Armure: {eq['Armure'] or 'Tunique'}")
-
                 with tab3:
                     st.subheader("Boutique d'objets")
 
@@ -2567,43 +2550,48 @@ elif st.session_state.user_role == "PLAYER":
                             st.write(titre)
                             st.caption(info.get('help', ''))
 
-                            # SYSTÈME D'ACHAT CIBLÉ pour équipements de combat
+                            # SYSTÈME D'ACHAT CIBLÉ pour équipements de combat (STRICT)
                             if is_combat_equip:
                                 # Création liste des destinataires éligibles
-                                destinataires = ["👤 Mon Chef"]
-                                for idx, t in enumerate(me["troupes"]):
-                                    destinataires.append(f"#{idx} {t['type']} - {t['nom']}")
+                                opts = ["👤 Mon Chef"]
+                                for t in me["troupes"]:
+                                    opts.append(f"{t['nom']} ({t['type']})")
 
-                                choix_dest = st.selectbox(f"Pour qui acheter {nom_obj} ?", destinataires, key=f"dest_{nom_obj}")
+                                choix_dest = st.selectbox(f"Pour qui acheter {nom_obj} ?", opts, key=f"dest_{nom_obj}")
 
-                                if st.button(f"Acheter {info['prix']}$", key=f"buy_{nom_obj}"):
-                                    if me["ecus"] >= info['prix']:
-                                        # Déterminer la cible
-                                        if choix_dest == "👤 Mon Chef":
-                                            target_dict = me["equipement_chef"]
+                                # Identification Cible et Slot
+                                slot_cible = "Arme" if type_obj == "Arme" else "Bouclier" if type_obj == "Bouclier" else "Armure"
+                                current_item = None
+
+                                if choix_dest == "👤 Mon Chef":
+                                    current_item = me["equipement_chef"].get(slot_cible)
+                                else:
+                                    # Retrouver l'index dans la liste troupes
+                                    idx_troupe = opts.index(choix_dest) - 1
+                                    current_item = me["troupes"][idx_troupe]["equipement"].get(slot_cible)
+
+                                # RÈGLE STRICTE : Si occupé, interdiction d'achat
+                                if current_item:
+                                    st.warning(f"🔒 Emplacement {slot_cible} occupé par : **{current_item}**")
+                                    st.caption("⚠️ Vendez l'objet actuel dans le Tableau de Bord Militaire avant d'en racheter un.")
+                                else:
+                                    # Slot libre, achat autorisé
+                                    if st.button(f"Acheter {info['prix']}$", key=f"buy_{nom_obj}"):
+                                        if me["ecus"] >= info["prix"]:
+                                            me["ecus"] -= info["prix"]
+
+                                            # Installation
+                                            if choix_dest == "👤 Mon Chef":
+                                                me["equipement_chef"][slot_cible] = nom_obj
+                                            else:
+                                                idx_troupe = opts.index(choix_dest) - 1
+                                                me["troupes"][idx_troupe]["equipement"][slot_cible] = nom_obj
+
+                                            st.toast(f"✅ {nom_obj} équipé sur {choix_dest} !", icon="✅")
+                                            save_data(data)
+                                            st.rerun()
                                         else:
-                                            # Récupérer l'index de la troupe
-                                            idx_t = int(choix_dest.split(" ")[0].replace("#", ""))
-                                            target_dict = me["troupes"][idx_t]["equipement"]
-
-                                        # Type de slot
-                                        slot = "Arme" if type_obj == "Arme" else "Bouclier" if type_obj == "Bouclier" else "Armure"
-
-                                        # Vente ancien matos (50% du prix)
-                                        old_item = target_dict.get(slot)
-                                        if old_item:
-                                            prix_old = CATALOGUE_OBJETS[old_item]["prix"] // 2
-                                            me["ecus"] += prix_old
-                                            st.toast(f"♻️ {old_item} revendu (+{prix_old}$)", icon="♻️")
-
-                                        # Achat et équipement
-                                        me["ecus"] -= info['prix']
-                                        target_dict[slot] = nom_obj
-                                        st.toast(f"✅ {nom_obj} équipé !", icon="✅")
-                                        save_data(data)
-                                        st.rerun()
-                                    else:
-                                        st.error("💸 Pas assez d'argent")
+                                            st.error("💸 Pas assez d'argent.")
                             else:
                                 # Achat normal pour objets non-combat
                                 col1, col2 = st.columns([3, 1])
