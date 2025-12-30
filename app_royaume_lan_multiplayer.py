@@ -11,6 +11,7 @@ import socket
 import qrcode
 from io import BytesIO
 import base64
+import uuid
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Royaume des Kaplas", layout="wide", page_icon="🏰")
@@ -483,98 +484,72 @@ class JoueurHelper:
 
         base = 1.0 + b_t + b_o + b_c + b_e + b_charrette
 
-        # BONUS BIOME : Montagne/Forêt = x3, Désert = x1
+        # BONUS BIOME : Montagne/Forêt = +3 fixe, Désert = +0
         biome = self.d.get("biome", "Désert/Mer")
         if biome == "Montagne/Forêt":
-            base *= 3.0  # Triple production
+            base += 3.0  # Bonus fixe +3
 
         if self.d.get("bonus_banquet", 0) > 0: base *= 2
         return base
 
     def get_defense(self):
-        # 1. Défense Armée (base faible)
-        armee = self.d.get("armee", {})
-        da = armee.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
-             armee.get("Archer",0)*STATS_COMBAT["Archer"]["base"] + \
-             armee.get("Chevalier",0)*STATS_COMBAT["Chevalier"]["base"]
+        total = 0
 
-        # 2. Défense Physique (Bâtiments)
+        # 1. Défense du Chef
+        chef_gear = self.d.get("equipement_chef", {})
+        for slot, item_name in chef_gear.items():
+            if item_name and item_name in CATALOGUE_OBJETS:
+                total += CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
+
+        # 2. Défense des Troupes
+        for troupe in self.d.get("troupes", []):
+            type_u = troupe["type"]
+            # Base
+            total += STATS_COMBAT[type_u]["base"]
+            # Equipement
+            for slot, item_name in troupe["equipement"].items():
+                if item_name and item_name in CATALOGUE_OBJETS:
+                    total += CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
+
+        # 3. Défense Physique (Bâtiments)
         phy = self.d.get("def_physique", {})
         dp = (50 if phy.get("enceinte") else 0) + (20 if phy.get("porte") else 0) + (self.d.get("nb_tours",0)*VALEUR_PHYSIQUE["tour"])
-
-        # 3. DISTRIBUTION INTELLIGENTE DES ARMURES/BOUCLIERS
-        # Récupérer toutes les armures et boucliers
-        armures_dispo = []
-        for obj in self.d.get("objets_reels", []):
-            nom = obj.get("nom")
-            if nom in CATALOGUE_OBJETS:
-                type_obj = CATALOGUE_OBJETS[nom].get("type")
-                if type_obj in ["Armure", "Bouclier"]:
-                    armures_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_def", 0))
-
-        # Trier par défense décroissante
-        armures_dispo.sort(reverse=True)
-
-        # Nombre de troupes pouvant porter des armures
-        nb_troupes = armee.get("Soldat",0) + armee.get("Archer",0) + armee.get("Chevalier",0)
-
-        # Distribuer les armures
-        bonus_armures_total = 0
-        armures_equipees = min(len(armures_dispo), nb_troupes)
-        for i in range(armures_equipees):
-            bonus_armures_total += armures_dispo[i]
-
-        # Bonus équipement du JOUEUR (Chef)
-        bonus_equipement_chef = 0
-        equipement = self.d.get("equipement_joueur", {})
-        for slot, item in equipement.items():
-            if item and "bonus_def" in item:
-                bonus_equipement_chef += item["bonus_def"]
+        total += dp
 
         # 4. Défense Kaplas (IRL)
         dk = (self.d.get("nb_toits",0)*3) + (self.d.get("kaplas",0)*2)
+        total += dk
 
-        total = int(da + dp + bonus_armures_total + bonus_equipement_chef + dk)
-
-        # Bonus Biome Désert
+        # 5. Bonus Biome Désert
         if self.d.get("biome") == "Désert/Mer":
             total = int(total * 1.5)
 
-        return total
+        return int(total)
 
     def get_puissance(self):
-        # 1. Puissance de base de l'armée
-        a = self.d.get("armee", {})
-        base = a.get("Soldat",0)*STATS_COMBAT["Soldat"]["base"] + \
-               a.get("Archer",0)*STATS_COMBAT["Archer"]["base"] + \
-               a.get("Chevalier",0)*STATS_COMBAT["Chevalier"]["base"]
+        total = 0
 
-        # 2. DISTRIBUTION INTELLIGENTE DES ARMES
-        armes_dispo = []
-        for obj in self.d.get("objets_reels", []):
-            nom = obj.get("nom")
-            if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
-                armes_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_att", 0))
+        # 1. Puissance du Chef
+        chef_gear = self.d.get("equipement_chef", {})
+        for slot, item_name in chef_gear.items():
+            if item_name and item_name in CATALOGUE_OBJETS:
+                total += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
 
-        armes_dispo.sort(reverse=True)
+        # 2. Puissance des Troupes
+        for troupe in self.d.get("troupes", []):
+            type_u = troupe["type"]
+            # Base
+            total += STATS_COMBAT[type_u]["base"]
+            # Equipement
+            for slot, item_name in troupe["equipement"].items():
+                if item_name and item_name in CATALOGUE_OBJETS:
+                    total += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
 
-        # Nombre de troupes pouvant porter des armes (Soldats + Chevaliers)
-        nb_troupes = a.get("Soldat",0) + a.get("Chevalier",0)
+        # 3. Bonus Biome Désert
+        if self.d.get("biome") == "Désert/Mer":
+            total = int(total * 1.5)
 
-        # Distribuer les armes
-        bonus_armes_total = 0
-        armes_equipees = min(len(armes_dispo), nb_troupes)
-        for i in range(armes_equipees):
-            bonus_armes_total += armes_dispo[i]
-
-        # 3. Bonus équipement du JOUEUR (Chef)
-        bonus_equipement_chef = 0
-        equipement = self.d.get("equipement_joueur", {})
-        for slot, item in equipement.items():
-            if item and "bonus_att" in item:
-                bonus_equipement_chef += item["bonus_att"]
-
-        return int(base + bonus_armes_total + bonus_equipement_chef)
+        return int(total)
 
     def a_objet(self, nom_objet):
         for obj in self.d.get("objets_reels", []):
@@ -607,39 +582,33 @@ class JoueurHelper:
 def simuler_combat(att_dict, def_dict, malus_riviere=False, touches_canon=0):
     logs = []
 
-    # Récupération armée
-    armee_att = att_dict.get("armee", {"Soldat":0, "Archer":0, "Chevalier":0})
-    s, a, c = armee_att.get("Soldat",0), armee_att.get("Archer",0), armee_att.get("Chevalier",0)
+    # NOUVEAU SYSTÈME - Itération sur les troupes individuelles
+    troupes_att = att_dict.get("troupes", [])
+    nb_soldats = len([t for t in troupes_att if t["type"] == "Soldat"])
+    nb_archers = len([t for t in troupes_att if t["type"] == "Archer"])
+    nb_chevaliers = len([t for t in troupes_att if t["type"] == "Chevalier"])
 
-    # DISTRIBUTION INTELLIGENTE DES ARMES
-    # 1. Récupérer toutes les armes disponibles
-    armes_dispo = []
-    for obj in att_dict.get("objets_reels", []):
-        nom = obj.get("nom")
-        if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
-            armes_dispo.append(CATALOGUE_OBJETS[nom].get("bonus_att", 0))
+    # Puissance de base de l'armée
+    force_base = 0
+    bonus_equipement_troupes = 0
 
-    # 2. Trier par puissance décroissante (meilleures d'abord)
-    armes_dispo.sort(reverse=True)
+    for troupe in troupes_att:
+        # Stats de base
+        force_base += STATS_COMBAT[troupe["type"]]["base"]
+        # Équipement de la troupe
+        for slot, item_name in troupe["equipement"].items():
+            if item_name and item_name in CATALOGUE_OBJETS:
+                bonus_equipement_troupes += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
 
-    # 3. Nombre de troupes pouvant porter des armes (Soldats + Chevaliers)
-    nb_troupes = s + c  # Les archers ont leurs propres arcs inclus
-
-    # 4. Distribuer les armes aux soldats
-    bonus_armes_total = 0
-    armes_equipees = min(len(armes_dispo), nb_troupes)
-    for i in range(armes_equipees):
-        bonus_armes_total += armes_dispo[i]
-
-    # Bonus équipement du JOUEUR (Chef)
+    # Bonus équipement du CHEF
     bonus_equipement_chef = 0
-    equipement = att_dict.get("equipement_joueur", {})
-    for slot, item in equipement.items():
-        if item and "bonus_att" in item:
-            bonus_equipement_chef += item["bonus_att"]
+    equipement_chef = att_dict.get("equipement_chef", {})
+    for slot, item_name in equipement_chef.items():
+        if item_name and item_name in CATALOGUE_OBJETS:
+            bonus_equipement_chef += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
 
-    if bonus_armes_total > 0:
-        logs.append(f"⚔️ Arsenal: {armes_equipees} armes distribuées (+{bonus_armes_total})")
+    if bonus_equipement_troupes > 0:
+        logs.append(f"⚔️ Arsenal: Troupes équipées (+{bonus_equipement_troupes})")
     if bonus_equipement_chef > 0:
         logs.append(f"👑 Chef équipé: +{bonus_equipement_chef}")
 
@@ -654,20 +623,15 @@ def simuler_combat(att_dict, def_dict, malus_riviere=False, touches_canon=0):
 
     logs.append(f"🎲 Dé: {de}/20 {msg}")
 
-    # 2. Calcul Force de Frappe (NOUVEAU SYSTÈME - Stats faibles)
-    # Force de base très faible (stats réduites)
-    force_base = (s * STATS_COMBAT["Soldat"]["base"]) + \
-                 (a * STATS_COMBAT["Archer"]["base"]) + \
-                 (c * STATS_COMBAT["Chevalier"]["base"])
-
+    # 2. Calcul Force de Frappe (NOUVEAU SYSTÈME - Stats par troupe)
     # Bonus aléatoire léger (0.9 à 1.3)
     var_aleatoire = random.uniform(0.9, 1.3)
 
-    # La force brute inclut la base faible + armes + équipement chef
-    dmg = (force_base + bonus_armes_total + bonus_equipement_chef) * var_aleatoire
+    # La force brute inclut la base + équipement troupes + équipement chef
+    dmg = (force_base + bonus_equipement_troupes + bonus_equipement_chef) * var_aleatoire
 
-    logs.append(f"⚔️ Troupes: {s} Soldats, {a} Archers, {c} Chevaliers")
-    logs.append(f"💪 Force totale: {int(dmg)} (Base: {force_base} + Arsenal: {bonus_armes_total} + Chef: {bonus_equipement_chef})")
+    logs.append(f"⚔️ Troupes: {nb_soldats} Soldats, {nb_archers} Archers, {nb_chevaliers} Chevaliers")
+    logs.append(f"💪 Force totale: {int(dmg)} (Base: {force_base} + Arsenal: {bonus_equipement_troupes} + Chef: {bonus_equipement_chef})")
 
     # Application du Dé
     total_att = int(dmg * (1 + bonus_de))
@@ -683,9 +647,18 @@ def simuler_combat(att_dict, def_dict, malus_riviere=False, touches_canon=0):
         total_att = int(total_att / 2)
         logs.append("🌊 RIVIÈRE: Malus traversée (/2)")
 
+    # Bonus Biome Désert (Attaquant)
+    if att_dict.get("biome") == "Désert/Mer":
+        total_att = int(total_att * 1.5)
+        logs.append("🏜️ BONUS DÉSERT (Attaque): x1.5")
+
     # Calcul Défense
     helper_def = JoueurHelper(def_dict)
     total_def = helper_def.get_defense()
+
+    # Le bonus désert défensif est déjà inclus dans get_defense()
+    if def_dict.get("biome") == "Désert/Mer":
+        logs.append("🏜️ BONUS DÉSERT (Défense): x1.5 (inclus)")
 
     diff = total_att - total_def
 
@@ -1196,13 +1169,13 @@ if st.session_state.user_role == "MASTER":
                         "nb_terrains": 0, "nb_ouvriers": 0, "nb_toits": 0, "nb_tours": 0,
                         "stock_ble": 0, "stock_vin": [],
                         "stock_gibier": {"Petit":0, "Moyen":0, "Gros":0}, "stock_champignons": 0,
-                        "armee": {"Soldat":0, "Archer":0, "Chevalier":0},
+                        "troupes": [],  # Nouvelle structure: liste de troupes individuelles
+                        "equipement_chef": {"Arme": None, "Armure": None, "Bouclier": None},  # Chef = Super Unité
                         "def_physique": {"enceinte": False, "porte": False},
                         "objets_reels": [], "conjoint": None, "enfants": 0, "bonus_banquet": 0,
                         "action_du_jour": None, "rapport_nuit": [], "rapport_combat": [],
                         "x": x_pos, "y": random.randint(10,90), "pont_construit": False,
                         "nb_actions_jour": 0, "last_attack_summary": None, "last_defense_summary": None,
-                        "equipement_joueur": {"Tete": None, "Torse": None, "Jambes": None, "MainG": None, "MainD": None, "Accessoire": None},
                         "nb_guerres_gagnees": 0
                     }
                     data["joueurs"].append(new_j)
@@ -1483,8 +1456,14 @@ elif st.session_state.user_role == "PLAYER":
         if gibier.get("Gros"): inv.append(f"🐻{gibier['Gros']}")
         if me.get("stock_champignons"): inv.append(f"🍄{me['stock_champignons']}")
     
-        for k,v in me.get("armee", {}).items():
-            if v > 0: inv.append(f"{STATS_COMBAT[k]['icon']}{v}")
+        # Affichage armée (nouvelle structure)
+        troupes = me.get("troupes", [])
+        nb_s = len([t for t in troupes if t["type"] == "Soldat"])
+        nb_a = len([t for t in troupes if t["type"] == "Archer"])
+        nb_c = len([t for t in troupes if t["type"] == "Chevalier"])
+        if nb_s > 0: inv.append(f"{STATS_COMBAT['Soldat']['icon']}{nb_s}")
+        if nb_a > 0: inv.append(f"{STATS_COMBAT['Archer']['icon']}{nb_a}")
+        if nb_c > 0: inv.append(f"{STATS_COMBAT['Chevalier']['icon']}{nb_c}")
     
         for o in me.get("objets_reels", []):
             nom_o = o.get("nom", "")
@@ -1537,75 +1516,45 @@ elif st.session_state.user_role == "PLAYER":
                 st.subheader("⚔️ Force d'Attaque")
                 puissance_att = helper.get_puissance()
     
-                # DISTRIBUTION INTELLIGENTE DES ARMES (pour affichage)
-                armes_dispo = []
-                armes_obj_names = []
-                for obj in me.get("objets_reels", []):
-                    nom = obj.get("nom")
-                    if nom in CATALOGUE_OBJETS and CATALOGUE_OBJETS[nom].get("type") == "Arme":
-                        bonus = CATALOGUE_OBJETS[nom].get("bonus_att", 0)
-                        armes_dispo.append(bonus)
-                        armes_obj_names.append((nom, bonus))
-                armes_dispo.sort(reverse=True)
-                armes_obj_names.sort(key=lambda x: x[1], reverse=True)
-    
-                armee = me.get("armee", {})
-                nb_troupes = armee.get("Soldat", 0) + armee.get("Chevalier", 0)
-                armes_equipees = min(len(armes_dispo), nb_troupes)
-                bonus_armes = sum(armes_dispo[:armes_equipees])
-    
+                # NOUVELLE STRUCTURE - Affichage des troupes individuelles
+                troupes = me.get("troupes", [])
+
+                # Calcul total avec équipement
+                bonus_troupes = 0
+                for troupe in troupes:
+                    for slot, item_name in troupe["equipement"].items():
+                        if item_name and item_name in CATALOGUE_OBJETS:
+                            bonus_troupes += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
+
                 # Bonus équipement chef
                 bonus_chef = 0
-                for slot, item in me.get("equipement_joueur", {}).items():
-                    if item and "bonus_att" in item:
-                        bonus_chef += item["bonus_att"]
-    
-                total_att = puissance_att + bonus_armes + bonus_chef
+                for slot, item_name in me.get("equipement_chef", {}).items():
+                    if item_name and item_name in CATALOGUE_OBJETS:
+                        bonus_chef += CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
+
+                total_att = puissance_att + bonus_troupes + bonus_chef
                 st.metric("Force Totale", total_att)
-                st.caption(f"Armée: {puissance_att} | Arsenal: {armes_equipees}/{len(armes_dispo)} (+{bonus_armes}) | Chef: +{bonus_chef}")
-    
-                # Liste des soldats équipés/non équipés
+                st.caption(f"Armée: {puissance_att} | Équipement Troupes: +{bonus_troupes} | Chef: +{bonus_chef}")
+
+                # Liste des troupes
                 st.divider()
-                st.write("**🗡️ Soldats d'Attaque**")
-                nb_soldats = armee.get("Soldat", 0)
-                nb_chevaliers = armee.get("Chevalier", 0)
+                st.write("**🗡️ Troupes de Combat**")
     
-                if nb_soldats + nb_chevaliers > 0:
-                    equipes = []
-                    non_equipes = []
-    
-                    # Soldats équipés
-                    for i in range(min(armes_equipees, nb_soldats)):
-                        if i < len(armes_obj_names):
-                            equipes.append(f"Soldat #{i+1} ({armes_obj_names[i][0]} +{armes_obj_names[i][1]})")
-    
-                    # Chevaliers équipés
-                    debut_chevalier = max(0, armes_equipees - nb_soldats)
-                    for i in range(min(nb_chevaliers, armes_equipees - nb_soldats)):
-                        idx = nb_soldats + i
-                        if idx < len(armes_obj_names):
-                            equipes.append(f"Chevalier #{i+1} ({armes_obj_names[idx][0]} +{armes_obj_names[idx][1]})")
-    
-                    # Soldats/Chevaliers non équipés
-                    soldats_non_equipes = max(0, nb_soldats - armes_equipees)
-                    for i in range(soldats_non_equipes):
-                        non_equipes.append(f"Soldat #{armes_equipees + i + 1} (Sans arme)")
-    
-                    chevaliers_non_equipes = max(0, nb_chevaliers - max(0, armes_equipees - nb_soldats))
-                    for i in range(chevaliers_non_equipes):
-                        non_equipes.append(f"Chevalier #{debut_chevalier + i + 1} (Sans arme)")
-    
-                    if equipes:
-                        st.success(f"✅ Équipés ({len(equipes)})")
-                        for e in equipes:
-                            st.caption(e)
-    
-                    if non_equipes:
-                        st.warning(f"⚠️ Non Équipés ({len(non_equipes)})")
-                        for ne in non_equipes:
-                            st.caption(ne)
+                if len(troupes) > 0:
+                    for troupe in troupes:
+                        icon = STATS_COMBAT[troupe["type"]]["icon"]
+                        eq_text = []
+                        for slot, item_name in troupe["equipement"].items():
+                            if item_name:
+                                bonus = CATALOGUE_OBJETS[item_name].get("bonus_att", 0)
+                                eq_text.append(f"{item_name} +{bonus}")
+
+                        if eq_text:
+                            st.success(f"{icon} {troupe['nom']}: {', '.join(eq_text)}")
+                        else:
+                            st.warning(f"{icon} {troupe['nom']}: Sans équipement")
                 else:
-                    st.info("Aucune troupe d'attaque")
+                    st.info("Aucune troupe recrutée")
     
                 # Dernière attaque effectuée
                 last_att = me.get("last_attack_summary")
@@ -1623,87 +1572,44 @@ elif st.session_state.user_role == "PLAYER":
                 defense_totale = helper.get_defense()
                 st.metric("Défense Totale", defense_totale)
     
-                # Détail de la défense avec nouvelles stats
-                armee_def = me.get("armee", {})
-                def_armee = armee_def.get("Soldat", 0) * STATS_COMBAT["Soldat"]["base"] + \
-                            armee_def.get("Archer", 0) * STATS_COMBAT["Archer"]["base"] + \
-                            armee_def.get("Chevalier", 0) * STATS_COMBAT["Chevalier"]["base"]
-    
-                # DISTRIBUTION INTELLIGENTE DES ARMURES (pour affichage)
-                armures_dispo = []
-                armures_obj_names = []
-                for obj in me.get("objets_reels", []):
-                    nom = obj.get("nom")
-                    if nom in CATALOGUE_OBJETS:
-                        type_obj = CATALOGUE_OBJETS[nom].get("type")
-                        if type_obj in ["Armure", "Bouclier"]:
-                            bonus = CATALOGUE_OBJETS[nom].get("bonus_def", 0)
-                            armures_dispo.append(bonus)
-                            armures_obj_names.append((nom, bonus))
-                armures_dispo.sort(reverse=True)
-                armures_obj_names.sort(key=lambda x: x[1], reverse=True)
-    
-                nb_troupes_def = armee_def.get("Soldat", 0) + armee_def.get("Archer", 0) + armee_def.get("Chevalier", 0)
-                armures_equipees = min(len(armures_dispo), nb_troupes_def)
-                bonus_armor = sum(armures_dispo[:armures_equipees])
-    
+                # NOUVELLE STRUCTURE - Détail défense
+                troupes_def = me.get("troupes", [])
+                def_armee = sum(STATS_COMBAT[t["type"]]["base"] for t in troupes_def)
+
+                # Calcul total avec équipement
+                bonus_armor = 0
+                for troupe in troupes_def:
+                    for slot, item_name in troupe["equipement"].items():
+                        if item_name and item_name in CATALOGUE_OBJETS:
+                            bonus_armor += CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
+
                 # Bonus équipement chef
                 bonus_chef_def = 0
-                for slot, item in me.get("equipement_joueur", {}).items():
-                    if item and "bonus_def" in item:
-                        bonus_chef_def += item["bonus_def"]
-    
-                st.caption(f"Armée: {def_armee} | Arsenal: {armures_equipees}/{len(armures_dispo)} (+{bonus_armor}) | Chef: +{bonus_chef_def}")
+                for slot, item_name in me.get("equipement_chef", {}).items():
+                    if item_name and item_name in CATALOGUE_OBJETS:
+                        bonus_chef_def += CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
+
+                st.caption(f"Armée: {def_armee} | Équipement Troupes: +{bonus_armor} | Chef: +{bonus_chef_def}")
     
                 # Liste des soldats équipés/non équipés (défense)
                 st.divider()
                 st.write("**🛡️ Troupes Défensives**")
     
-                if nb_troupes_def > 0:
-                    equipes_def = []
-                    non_equipes_def = []
-    
-                    # Distribution : Soldats -> Archers -> Chevaliers
-                    nb_s = armee_def.get("Soldat", 0)
-                    nb_a = armee_def.get("Archer", 0)
-                    nb_c = armee_def.get("Chevalier", 0)
-    
-                    idx = 0
-                    # Soldats
-                    for i in range(nb_s):
-                        if idx < armures_equipees and idx < len(armures_obj_names):
-                            equipes_def.append(f"Soldat #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
-                            idx += 1
+                if len(troupes_def) > 0:
+                    for troupe in troupes_def:
+                        icon = STATS_COMBAT[troupe["type"]]["icon"]
+                        eq_text = []
+                        for slot, item_name in troupe["equipement"].items():
+                            if item_name:
+                                bonus = CATALOGUE_OBJETS[item_name].get("bonus_def", 0)
+                                eq_text.append(f"{item_name} +{bonus}")
+
+                        if eq_text:
+                            st.success(f"{icon} {troupe['nom']}: {', '.join(eq_text)}")
                         else:
-                            non_equipes_def.append(f"Soldat #{i+1} (Sans protection)")
-    
-                    # Archers
-                    for i in range(nb_a):
-                        if idx < armures_equipees and idx < len(armures_obj_names):
-                            equipes_def.append(f"Archer #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
-                            idx += 1
-                        else:
-                            non_equipes_def.append(f"Archer #{i+1} (Sans protection)")
-    
-                    # Chevaliers
-                    for i in range(nb_c):
-                        if idx < armures_equipees and idx < len(armures_obj_names):
-                            equipes_def.append(f"Chevalier #{i+1} ({armures_obj_names[idx][0]} +{armures_obj_names[idx][1]})")
-                            idx += 1
-                        else:
-                            non_equipes_def.append(f"Chevalier #{i+1} (Sans protection)")
-    
-                    if equipes_def:
-                        st.success(f"✅ Équipés ({len(equipes_def)})")
-                        for e in equipes_def:
-                            st.caption(e)
-    
-                    if non_equipes_def:
-                        st.warning(f"⚠️ Non Équipés ({len(non_equipes_def)})")
-                        for ne in non_equipes_def:
-                            st.caption(ne)
+                            st.warning(f"{icon} {troupe['nom']}: Sans équipement")
                 else:
-                    st.info("Aucune troupe défensive")
+                    st.info("Aucune troupe recrutée")
     
                 # Dernière défense
                 last_def = me.get("last_defense_summary")
@@ -2563,7 +2469,7 @@ elif st.session_state.user_role == "PLAYER":
                     for nom_u, stats in STATS_COMBAT.items():
                         col1, col2 = st.columns([3, 1])
                         col1.write(f"{stats['icon']} **{nom_u}** - {stats['desc']} - Force: {stats['base']}")
-    
+
                         # Condition spéciale pour Chevalier
                         if nom_u == "Chevalier":
                             if chevaux_libres <= 0:
@@ -2571,8 +2477,20 @@ elif st.session_state.user_role == "PLAYER":
                                 col1.caption("⚠️ Nécessite 1 Cheval libre")
                             elif col2.button(f"{stats['cout']}$", key=f"rec_{nom_u}"):
                                 if me["ecus"] >= stats['cout']:
+                                    # Créer une nouvelle troupe unique
+                                    nb_existantes = len([t for t in me["troupes"] if t["type"] == nom_u])
+                                    nouvelle_troupe = {
+                                        "id": str(uuid.uuid4()),
+                                        "type": nom_u,
+                                        "nom": f"{nom_u} #{nb_existantes + 1}",
+                                        "equipement": {
+                                            "Arme": None,
+                                            "Armure": None,
+                                            "Bouclier": None
+                                        }
+                                    }
                                     me["ecus"] -= stats['cout']
-                                    me["armee"][nom_u] += 1
+                                    me["troupes"].append(nouvelle_troupe)
                                     save_data(data)
                                     st.rerun()
                                 else:
@@ -2581,107 +2499,125 @@ elif st.session_state.user_role == "PLAYER":
                             # Autres unités (Soldat, Archer)
                             if col2.button(f"{stats['cout']}$", key=f"rec_{nom_u}"):
                                 if me["ecus"] >= stats['cout']:
+                                    # Créer une nouvelle troupe unique
+                                    nb_existantes = len([t for t in me["troupes"] if t["type"] == nom_u])
+                                    nouvelle_troupe = {
+                                        "id": str(uuid.uuid4()),
+                                        "type": nom_u,
+                                        "nom": f"{nom_u} #{nb_existantes + 1}",
+                                        "equipement": {
+                                            "Arme": None,
+                                            "Armure": None,
+                                            "Bouclier": None
+                                        }
+                                    }
                                     me["ecus"] -= stats['cout']
-                                    me["armee"][nom_u] += 1
+                                    me["troupes"].append(nouvelle_troupe)
                                     save_data(data)
                                     st.rerun()
                                 else:
                                     st.error("💸 Pas assez d'argent")
-    
+
+                    # INTERFACE CASERNE (Gestion des Troupes)
+                    st.divider()
+                    st.subheader("🎖️ Caserne & Troupes")
+
+                    if not me["troupes"]:
+                        st.info("Aucune troupe recrutée. Utilisez le recrutement ci-dessus!")
+                    else:
+                        for i, troupe in enumerate(me["troupes"]):
+                            with st.expander(f"{STATS_COMBAT[troupe['type']]['icon']} {troupe['nom']}", expanded=False):
+                                # Renommage
+                                new_name = st.text_input("Nom", troupe['nom'], key=f"rename_{i}")
+                                if new_name != troupe['nom']:
+                                    troupe['nom'] = new_name
+                                    save_data(data)
+
+                                # Affichage Slots
+                                c1, c2, c3 = st.columns(3)
+                                eq = troupe["equipement"]
+                                c1.info(f"🗡️ Arme: {eq['Arme'] or 'Poings'}")
+                                c2.info(f"🛡️ Bouclier: {eq['Bouclier'] or 'Aucun'}")
+                                c3.info(f"👕 Armure: {eq['Armure'] or 'Tunique'}")
+
                 with tab3:
                     st.subheader("Boutique d'objets")
-    
-                    # CHOIX DESTINATION POUR ÉQUIPEMENT DE COMBAT
-                    type_achat_combat = st.radio(
-                        "🎯 Destination de l'achat (Armes/Armures/Boucliers)",
-                        ["📦 Stock Armée", "👑 Mon Personnage (Chef)"],
-                        horizontal=True,
-                        key="radio_destination"
-                    )
-    
+
                     st.divider()
-    
+
                     for nom_obj, info in CATALOGUE_OBJETS.items():
                         deja_possede = helper.a_objet(nom_obj)
                         is_stackable = info.get("stackable", False)
                         type_obj = info.get("type")
-    
+
                         # Déterminer si c'est un équipement de combat
                         is_combat_equip = type_obj in ["Arme", "Armure", "Bouclier"]
-    
+
                         # On affiche le bouton d'achat si l'objet n'est pas possédé OU s'il est cumulable
                         if deja_possede and not is_stackable and not is_combat_equip:
                             st.success(f"✅ {info['icon']} {nom_obj} - Déjà possédé")
                         else:
-                            col1, col2 = st.columns([3, 1])
                             titre = f"{info['icon']} **{nom_obj}** - {info['desc']}"
-    
+
                             # Si cumulable et déjà possédé, on montre combien on en a
                             if is_stackable and deja_possede:
                                 count = len([o for o in me["objets_reels"] if o["nom"] == nom_obj])
                                 titre += f" (Possédé: {count})"
-    
-                            # Indication de destination pour équipements de combat
+
+                            st.write(titre)
+                            st.caption(info.get('help', ''))
+
+                            # SYSTÈME D'ACHAT CIBLÉ pour équipements de combat
                             if is_combat_equip:
-                                if "Chef" in type_achat_combat:
-                                    titre += " 👑"
-                                else:
-                                    titre += " 📦"
-    
-                            col1.write(titre)
-                            col1.caption(info.get('help', ''))
-                            if col2.button(f"{info['prix']}$", key=f"obj_{nom_obj}"):
-                                # Vérification spéciale pour Charrette : nécessite un Cheval
-                                if nom_obj == "Charrette" and not helper.a_objet("Cheval"):
-                                    st.error("❌ Vous devez posséder un Cheval pour acheter une Charrette !")
-                                elif me["ecus"] >= info['prix']:
-                                    me["ecus"] -= info['prix']
-    
-                                    # Si c'est un équipement de combat ET destiné au Chef
-                                    if is_combat_equip and "Chef" in type_achat_combat:
-                                        # Équiper le chef automatiquement dans le bon slot
-                                        equipement = me.get("equipement_joueur", {})
-                                        if not equipement:
-                                            equipement = {"Tete": None, "Torse": None, "Jambes": None,
-                                                         "MainG": None, "MainD": None, "Accessoire": None}
-                                            me["equipement_joueur"] = equipement
-    
-                                        # Déterminer le slot selon le type
-                                        slot_cible = None
-                                        if type_obj == "Armure":
-                                            slot_cible = "Torse"
-                                        elif type_obj == "Bouclier":
-                                            slot_cible = "MainG"
-                                        elif type_obj == "Arme":
-                                            slot_cible = "MainD"
-    
-                                        # Créer l'objet équipement
-                                        item_data = {"nom": nom_obj, "type": type_obj}
-                                        if "bonus_att" in info:
-                                            item_data["bonus_att"] = info["bonus_att"]
-                                        if "bonus_def" in info:
-                                            item_data["bonus_def"] = info["bonus_def"]
-    
-                                        # Si le slot est déjà occupé, envoyer l'ancien équipement au stock
-                                        if slot_cible and equipement.get(slot_cible):
-                                            ancien = equipement[slot_cible]
-                                            me["objets_reels"].append(ancien)
-                                            st.toast(f"⚠️ {ancien['nom']} renvoyé au stock", icon="📦")
-    
-                                        # Équiper le nouvel item
-                                        if slot_cible:
-                                            equipement[slot_cible] = item_data
-                                            st.toast(f"✅ {nom_obj} équipé sur {slot_cible}", icon="👑")
+                                # Création liste des destinataires éligibles
+                                destinataires = ["👤 Mon Chef"]
+                                for idx, t in enumerate(me["troupes"]):
+                                    destinataires.append(f"#{idx} {t['type']} - {t['nom']}")
+
+                                choix_dest = st.selectbox(f"Pour qui acheter {nom_obj} ?", destinataires, key=f"dest_{nom_obj}")
+
+                                if st.button(f"Acheter {info['prix']}$", key=f"buy_{nom_obj}"):
+                                    if me["ecus"] >= info['prix']:
+                                        # Déterminer la cible
+                                        if choix_dest == "👤 Mon Chef":
+                                            target_dict = me["equipement_chef"]
                                         else:
-                                            # Fallback : ajouter au stock si pas de slot déterminé
-                                            me["objets_reels"].append({"nom": nom_obj, "type": info['type'], "valeur": info['prix']})
-    
+                                            # Récupérer l'index de la troupe
+                                            idx_t = int(choix_dest.split(" ")[0].replace("#", ""))
+                                            target_dict = me["troupes"][idx_t]["equipement"]
+
+                                        # Type de slot
+                                        slot = "Arme" if type_obj == "Arme" else "Bouclier" if type_obj == "Bouclier" else "Armure"
+
+                                        # Vente ancien matos (50% du prix)
+                                        old_item = target_dict.get(slot)
+                                        if old_item:
+                                            prix_old = CATALOGUE_OBJETS[old_item]["prix"] // 2
+                                            me["ecus"] += prix_old
+                                            st.toast(f"♻️ {old_item} revendu (+{prix_old}$)", icon="♻️")
+
+                                        # Achat et équipement
+                                        me["ecus"] -= info['prix']
+                                        target_dict[slot] = nom_obj
+                                        st.toast(f"✅ {nom_obj} équipé !", icon="✅")
+                                        save_data(data)
+                                        st.rerun()
                                     else:
-                                        # Achat normal pour le stock d'armée
+                                        st.error("💸 Pas assez d'argent")
+                            else:
+                                # Achat normal pour objets non-combat
+                                col1, col2 = st.columns([3, 1])
+                                if col2.button(f"{info['prix']}$", key=f"obj_{nom_obj}"):
+                                    # Vérification spéciale pour Charrette : nécessite un Cheval
+                                    if nom_obj == "Charrette" and not helper.a_objet("Cheval"):
+                                        st.error("❌ Vous devez posséder un Cheval pour acheter une Charrette !")
+                                    elif me["ecus"] >= info['prix']:
+                                        me["ecus"] -= info['prix']
                                         me["objets_reels"].append({"nom": nom_obj, "type": info['type'], "valeur": info['prix']})
-    
-                                    save_data(data)
-                                    st.rerun()
+                                        save_data(data)
+                                        st.rerun()
+
+                            st.divider()
     
                     st.divider()
     
